@@ -34,11 +34,13 @@ class ModernCourseScheduleApp:
         # 初始化courses属性
         self.courses = []
 
-        # 先创建UI，再设置周数
+        # 初始化当前周数
+        self.current_week = self.get_current_week()
+
+        # 创建UI
         self.setup_ui()
         
-        # 设置当前周数
-        self.current_week = self.get_current_week()
+        # 设置周数选择器的值
         self.top_bar.week_var.set(self.current_week)
         
         self.load_courses()
