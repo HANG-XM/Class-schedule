@@ -17,7 +17,8 @@ class ModernCourseScheduleApp:
         self.root.minsize(1200, 800)
 
         self.course_manager = CourseManager()
-        self.current_week = 1
+        self.current_week = self.get_current_week()
+        self.top_bar.week_var.set(self.current_week)
         self.current_view = "week"  # week, day, month
         self.current_theme = "flatly"
 
@@ -116,7 +117,19 @@ class ModernCourseScheduleApp:
         # 如果当前是周视图，刷新显示
         if self.current_view == "week":
             self.week_view.show()
-
+    def get_current_week(self):
+        """获取当前周数"""
+        # 获取当前日期
+        today = datetime.now()
+        
+        # 假设学期开始日期为9月1日
+        start_date = datetime(today.year, 9, 1)
+        
+        # 计算周数差
+        week_diff = (today - start_date).days // 7 + 1
+        
+        # 确保周数在合理范围内
+        return max(1, min(week_diff, 20))
     def run(self):
         """运行应用"""
         self.root.mainloop()
