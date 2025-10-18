@@ -141,7 +141,25 @@ class CourseManager:
         cursor.execute('SELECT * FROM courses ORDER BY day_of_week, start_time')
         courses = cursor.fetchall()
         conn.close()
-        return courses
+        # 过滤掉无效数据
+        return [c for c in courses if self._is_valid_course(c)]
+
+    def _is_valid_course(self, course: Tuple) -> bool:
+        """验证课程数据是否有效"""
+        try:
+            # 检查周数是否为有效数字
+            int(course[3])  # start_week
+            int(course[4])  # end_week
+            # 检查其他必要字段
+            return all([
+                course[1],  # name
+                course[2],  # teacher
+                course[5],  # day_of_week
+                course[6],  # start_time
+                course[7],  # end_time
+            ])
+        except (ValueError, TypeError, IndexError):
+            return False
     
     def delete_course(self, course_id: int) -> None:
         """删除课程"""
