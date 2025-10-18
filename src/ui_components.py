@@ -76,8 +76,8 @@ class TopBar:
             if semester[1] == selected_name:
                 self.app.course_manager.set_current_semester(semester[0])
                 self.app.current_semester = semester
-                self.app.load_courses()
-                self.app.update_display()
+                self.app.load_courses()  # 重新加载课程
+                self.app.update_display()  # 更新显示
                 break
 
     def show_add_semester_dialog(self):

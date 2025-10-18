@@ -405,6 +405,11 @@ class AddSemesterDialog:
             new_semester = self.app.semesters[-1]
             self.app.course_manager.set_current_semester(new_semester[0])
             self.app.current_semester = new_semester
+            
+            # 重新加载课程并更新显示
+            self.app.load_courses()
+            self.app.update_display()
+            
             self.dialog.destroy()
             messagebox.showinfo("成功", "学期创建成功！")
             
