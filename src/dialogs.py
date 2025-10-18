@@ -13,7 +13,7 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("590x760")  # 调整窗口大小
+        self.dialog.geometry("590x800")  # 调整窗口大小
         self.dialog.resizable(False, False)
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
@@ -33,14 +33,11 @@ class AddCourseDialog:
         # 基本信息
         self.create_basic_info_section(parent)
         
-        # 时间设置
-        self.create_time_section(parent)
+        # 时间和周数设置
+        self.create_time_week_section(parent)
         
         # 课程类型和颜色
         self.create_type_color_section(parent)
-        
-        # 周数设置
-        self.create_week_section(parent)
         
         # 星期设置
         self.create_day_section(parent)
@@ -70,23 +67,17 @@ class AddCourseDialog:
         tb.Label(location_frame, text="上课地点:", width=10).pack(side=LEFT)
         self.location_entry = tb.Entry(location_frame, font=("Helvetica", 10))
         self.location_entry.pack(side=LEFT, fill=X, expand=True, padx=(10, 0))
-
-    def create_time_section(self, parent):
-        """创建时间选择部分"""
-        section_frame = tb.LabelFrame(parent, text="上课时间", padding=10)
+    def create_time_week_section(self, parent):
+        """创建时间和周数设置部分"""
+        section_frame = tb.LabelFrame(parent, text="时间安排", padding=10)
         section_frame.pack(fill=X, pady=5)
 
-        # 时间预览
-        self.time_preview = tb.Label(section_frame, text="请选择时间段", 
-                                   font=("Helvetica", 10), bootstyle=INFO)
-        self.time_preview.pack(fill=X, pady=(0, 5))
-
-        # 时间选择
-        time_select_frame = tb.Frame(section_frame)
-        time_select_frame.pack(fill=X)
+        # 上方：时间选择
+        time_frame = tb.Frame(section_frame)
+        time_frame.pack(fill=X, pady=(0, 10))
         
-        tb.Label(time_select_frame, text="时间段:").pack(side=LEFT)
-        self.start_time = tb.Combobox(time_select_frame, 
+        tb.Label(time_frame, text="上课时间:").pack(side=LEFT)
+        self.start_time = tb.Combobox(time_frame, 
                                     values=[f"{start}-{end}" for start, end in self.app.time_slots],
                                     state="readonly", 
                                     font=("Helvetica", 10),
@@ -94,6 +85,28 @@ class AddCourseDialog:
         self.start_time.pack(side=LEFT, padx=(10, 0))
         self.start_time.bind("<<ComboboxSelected>>", self.update_time_preview)
 
+        # 下方：周数范围
+        week_frame = tb.Frame(section_frame)
+        week_frame.pack(fill=X)
+        
+        tb.Label(week_frame, text="周数范围:").pack(side=LEFT)
+        
+        week_input_frame = tb.Frame(week_frame)
+        week_input_frame.pack(side=LEFT, padx=(10, 0))
+        
+        self.start_week = tb.Spinbox(week_input_frame, from_=1, to=20, 
+                                width=5, font=("Helvetica", 10))
+        self.start_week.set(1)
+        self.start_week.pack(side=LEFT)
+        
+        tb.Label(week_input_frame, text=" 至 ").pack(side=LEFT)
+        
+        self.end_week = tb.Spinbox(week_input_frame, from_=1, to=20, 
+                                width=5, font=("Helvetica", 10))
+        self.end_week.set(16)
+        self.end_week.pack(side=LEFT)
+        
+        tb.Label(week_input_frame, text=" 周").pack(side=LEFT)
     def create_type_color_section(self, parent):
         """创建类型和颜色选择部分"""
         section_frame = tb.LabelFrame(parent, text="课程样式", padding=10)
@@ -139,33 +152,6 @@ class AddCourseDialog:
                         command=lambda c=color: self.on_color_select(c),
                         width=4)  # 将宽度从6改为4
             btn.pack(side=LEFT, padx=1)  # 将间距从2改为1
-
-    def create_week_section(self, parent):
-        """创建周数设置部分"""
-        section_frame = tb.LabelFrame(parent, text="周数范围", padding=10)
-        section_frame.pack(fill=X, pady=5)
-
-        week_frame = tb.Frame(section_frame)
-        week_frame.pack(fill=X)
-        
-        tb.Label(week_frame, text="周数:").pack(side=LEFT)
-        
-        week_input_frame = tb.Frame(week_frame)
-        week_input_frame.pack(side=LEFT, padx=(10, 0))
-        
-        self.start_week = tb.Spinbox(week_input_frame, from_=1, to=20, 
-                                   width=5, font=("Helvetica", 10))
-        self.start_week.set(1)
-        self.start_week.pack(side=LEFT)
-        
-        tb.Label(week_input_frame, text=" 至 ").pack(side=LEFT)
-        
-        self.end_week = tb.Spinbox(week_input_frame, from_=1, to=20, 
-                                 width=5, font=("Helvetica", 10))
-        self.end_week.set(16)
-        self.end_week.pack(side=LEFT)
-        
-        tb.Label(week_input_frame, text=" 周").pack(side=LEFT)
 
     def create_day_section(self, parent):
         """创建星期选择部分"""
