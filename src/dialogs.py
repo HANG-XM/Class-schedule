@@ -216,11 +216,11 @@ class AddSemesterDialog:
         """创建新建学期对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("新建学期")
-        self.dialog.geometry("500x400")  # 增加窗口尺寸
+        self.dialog.geometry("500x430")  # 增加窗口尺寸
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
 
-        main_frame = tb.Frame(self.dialog, padding=30)  # 增加内边距
+        main_frame = tb.Frame(self.dialog, padding=20)  # 增加内边距
         main_frame.pack(fill=BOTH, expand=True)
 
         # 学期类型选择
@@ -262,7 +262,7 @@ class AddSemesterDialog:
 
         # 按钮
         btn_frame = tb.Frame(main_frame)
-        btn_frame.pack(fill="x", pady=30)  # 增加上下间距
+        btn_frame.pack(fill="x", pady=0)  # 增加上下间距
         
         tb.Button(btn_frame, text="取消", command=self.dialog.destroy,
                 bootstyle=(SECONDARY, OUTLINE), width=10).pack(side="right", padx=5)
