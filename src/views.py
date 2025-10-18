@@ -44,7 +44,8 @@ class WeekView:
             tree.insert("", "end", values=values)
 
         # 添加课程到表格
-        week_courses = self.app.course_manager.get_courses_by_week(self.app.current_week)
+        week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
+                    if c[11] == self.app.current_semester[0]]  # 添加学期ID过滤
         for course in week_courses:
             day_index = course[5]  # 星期几 (1-7)
             time_index = None
@@ -96,7 +97,8 @@ class DayView:
 
         # 创建当天的课程列表
         current_day = datetime.now().weekday() + 1
-        day_courses = self.app.course_manager.get_courses_by_day(current_day, self.app.current_week)
+        day_courses = [c for c in self.app.course_manager.get_courses_by_day(current_day, self.app.current_week)
+                    if c[11] == self.app.current_semester[0]]  # 添加学期ID过滤
 
         if day_courses:
             for course in day_courses:
@@ -217,7 +219,8 @@ class MonthView:
             # 获取当天的课程
             day_courses = [c for c in self.app.courses
                         if c[5] == current_date.weekday() + 1 and 
-                        c[3] <= self.app.current_week <= c[4]]
+                        c[3] <= self.app.current_week <= c[4] and
+                        c[11] == self.app.current_semester[0]]  # 添加学期ID过滤
 
             # 显示课程
             if day_courses:

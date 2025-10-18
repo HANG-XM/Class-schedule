@@ -152,8 +152,8 @@ class CourseManager:
         cursor = conn.cursor()
         cursor.execute('''
             UPDATE courses SET name=?, teacher=?, location=?, start_week=?, end_week=?,
-                           day_of_week=?, start_time=?, end_time=?, color=?, course_type=?,
-                           is_special=?
+                        day_of_week=?, start_time=?, end_time=?, color=?, course_type=?,
+                        is_special=?, semester_id=?
             WHERE id=?
         ''', course_data + (course_id,))
         conn.commit()
