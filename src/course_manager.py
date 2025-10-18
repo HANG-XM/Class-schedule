@@ -111,11 +111,26 @@ class CourseManager:
         """添加课程"""
         conn = sqlite3.connect('courses.db')
         cursor = conn.cursor()
+        # 将周数转换为整数
+        processed_data = (
+            course_data[0],  # name
+            course_data[1],  # teacher
+            course_data[2],  # location
+            int(course_data[3]),  # start_week
+            int(course_data[4]),  # end_week
+            course_data[5],  # day_of_week
+            course_data[6],  # start_time
+            course_data[7],  # end_time
+            course_data[8],  # color
+            course_data[9],  # course_type
+            course_data[10], # is_special
+            course_data[11]  # semester_id
+        )
         cursor.execute('''
             INSERT INTO courses (name, teacher, location, start_week, end_week, 
                             day_of_week, start_time, end_time, color, course_type, is_special, semester_id)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', course_data)
+        ''', processed_data)
         conn.commit()
         conn.close()
     
@@ -139,12 +154,12 @@ class CourseManager:
     def get_courses_by_week(self, week: int) -> List[Tuple]:
         """获取指定周的课程"""
         courses = self.get_courses()
-        return [c for c in courses if c[3] <= week <= c[4]]
+        return [c for c in courses if int(c[3]) <= week <= int(c[4])]
     
     def get_courses_by_day(self, day: int, week: int) -> List[Tuple]:
         """获取指定周指定日的课程"""
         courses = self.get_courses()
-        return [c for c in courses if c[5] == day and c[3] <= week <= c[4]]
+        return [c for c in courses if c[5] == day and int(c[3]) <= week <= int(c[4])]
     
     def update_course(self, course_id: int, course_data: Tuple) -> None:
         """更新课程信息"""
