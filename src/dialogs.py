@@ -13,7 +13,7 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("590x800")  # 调整窗口大小
+        self.dialog.geometry("590x720")  # 调整窗口大小
         self.dialog.resizable(False, False)
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
@@ -74,7 +74,7 @@ class AddCourseDialog:
 
         # 上方：时间选择
         time_frame = tb.Frame(section_frame)
-        time_frame.pack(fill=X, pady=(0, 10))
+        time_frame.pack(fill=X, pady=(0, 5))
         
         tb.Label(time_frame, text="上课时间:").pack(side=LEFT)
         self.start_time = tb.Combobox(time_frame, 
@@ -84,6 +84,11 @@ class AddCourseDialog:
                                     width=15)
         self.start_time.pack(side=LEFT, padx=(10, 0))
         self.start_time.bind("<<ComboboxSelected>>", self.update_time_preview)
+
+        # 添加时间预览标签
+        self.time_preview = tb.Label(section_frame, text="请选择时间段", 
+                                font=("Helvetica", 10), bootstyle=INFO)
+        self.time_preview.pack(fill=X, pady=(0, 10))
 
         # 下方：周数范围
         week_frame = tb.Frame(section_frame)
