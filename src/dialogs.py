@@ -155,16 +155,16 @@ class AddCourseDialog:
         color_btn_frame.pack(side=LEFT, padx=(10, 0))
         
         colors = [
-            ("primary", "蓝色"), ("success", "绿色"), ("warning", "黄色"),
-            ("danger", "红色"), ("info", "青色"), ("secondary", "灰色")
+            ("primary", "蓝"), ("success", "绿"), ("warning", "黄"),
+            ("danger", "红"), ("info", "青"), ("secondary", "灰")
         ]
         self.color_var = tb.StringVar(value=colors[0][0])
-        
+
         for color, name in colors:
             btn = tb.Button(color_btn_frame, text=name, bootstyle=color, 
-                          command=lambda c=color: self.on_color_select(c),
-                          width=6)
-            btn.pack(side=LEFT, padx=2)
+                        command=lambda c=color: self.on_color_select(c),
+                        width=4)  # 将宽度从6改为4
+            btn.pack(side=LEFT, padx=1)  # 将间距从2改为1
 
     def create_week_section(self, parent):
         """创建周数设置部分"""
