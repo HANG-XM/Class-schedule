@@ -129,36 +129,136 @@ class MonthView:
         for widget in self.frame.winfo_children():
             widget.destroy()
 
-        # 创建月视图内容
-        content = tb.Frame(self.frame)
-        content.pack(fill=BOTH, expand=True, padx=20, pady=20)
+        # 创建主容器
+        main_container = tb.Frame(self.frame)
+        main_container.pack(fill=BOTH, expand=True, padx=20, pady=20)
 
-        tb.Label(content, text="月视图",
-                font=("Helvetica", 24, "bold"),
-                bootstyle=PRIMARY).pack(pady=20)
+        # 月份导航
+        nav_frame = tb.Frame(main_container)
+        nav_frame.pack(fill=X, pady=(0, 10))
 
-        # 创建月份概览
-        month_frame = tb.Frame(content)
-        month_frame.pack(fill=BOTH, expand=True)
+        tb.Button(nav_frame, text="◀", width=3,
+                command=self.previous_month).pack(side=LEFT, padx=5)
+        
+        self.month_label = tb.Label(nav_frame, text="",
+                                font=("Helvetica", 16, "bold"))
+        self.month_label.pack(side=LEFT, expand=True)
+        
+        tb.Button(nav_frame, text="▶", width=3,
+                command=self.next_month).pack(side=LEFT, padx=5)
+
+        # 统计信息
+        stats_frame = tb.Frame(main_container)
+        stats_frame.pack(fill=X, pady=(0, 10))
+        
+        self.total_courses = tb.Label(stats_frame, text="",
+                                    font=("Helvetica", 12))
+        self.total_courses.pack(side=LEFT, padx=20)
+        
+        self.special_courses = tb.Label(stats_frame, text="",
+                                    font=("Helvetica", 12))
+        self.special_courses.pack(side=LEFT, padx=20)
+
+        # 日历主体
+        self.calendar_frame = tb.Frame(main_container)
+        self.calendar_frame.pack(fill=BOTH, expand=True)
+
+        # 初始化当前日期
+        self.current_date = datetime.now()
+        self.update_month_view()
+
+    def update_month_view(self):
+        """更新月份视图"""
+        # 清空日历
+        for widget in self.calendar_frame.winfo_children():
+            widget.destroy()
+
+        # 更新月份标签
+        year = self.current_date.year
+        month = self.current_date.month
+        self.month_label.config(text=f"{year}年{month}月")
 
         # 添加星期标题
         week_days = ["一", "二", "三", "四", "五", "六", "日"]
         for day in week_days:
-            tb.Label(month_frame, text=day, width=4).pack(side=LEFT, padx=2)
+            tb.Label(self.calendar_frame, text=day, width=4,
+                    font=("Helvetica", 10, "bold")).pack(side=LEFT, padx=2)
+
+        # 获取月份第一天和最后一天
+        first_day = datetime(year, month, 1)
+        last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
+
+        # 添加空白格子
+        for _ in range(first_day.weekday()):
+            tb.Frame(self.calendar_frame, width=60, height=60).pack(side=LEFT)
 
         # 添加日期格子
-        for date in range(1, 31):  # 假设每月最多31天
-            day_frame = tb.Frame(month_frame, relief=RIDGE, borderwidth=1)
+        current_date = first_day
+        while current_date <= last_day:
+            day_frame = tb.Frame(self.calendar_frame, relief=RIDGE, borderwidth=1)
             day_frame.pack(side=LEFT, fill=BOTH, expand=True, padx=2, pady=2)
 
-            day_of_week = (date - 1) % 7 + 1
-            if date == 1:  # 新的一周开始
-                tb.Frame(month_frame, height=20).pack(fill=X)  # 添加间隔
+            # 日期标签
+            date_label = tb.Label(day_frame, text=str(current_date.day),
+                                font=("Helvetica", 12))
+            date_label.pack()
 
-            tb.Label(day_frame, text=str(date)).pack()
+            # 获取当天的课程
+            day_courses = [c for c in self.app.courses
+                        if c[5] == current_date.weekday() + 1 and 
+                        c[3] <= self.app.current_week <= c[4]]
 
-            # 检查是否有课程
-            has_course = any(c for c in self.app.courses
-                           if c[5] == day_of_week and c[3] <= self.app.current_week <= c[4])
-            if has_course:
-                tb.Label(day_frame, text="●", bootstyle=SUCCESS).pack()
+            # 显示课程
+            if day_courses:
+                course_frame = tb.Frame(day_frame)
+                course_frame.pack(fill=BOTH, expand=True)
+                
+                # 最多显示3门课程
+                for i, course in enumerate(day_courses[:3]):
+                    course_label = tb.Label(course_frame, 
+                                        text=course[1][:4],  # 只显示课程名前4个字符
+                                        font=("Helvetica", 9),
+                                        bootstyle=course[8])
+                    course_label.pack(anchor="w")
+                
+                # 如果课程数超过3，显示"+N"
+                if len(day_courses) > 3:
+                    more_label = tb.Label(course_frame,
+                                        text=f"+{len(day_courses)-3}",
+                                        font=("Helvetica", 9),
+                                        bootstyle="info")
+                    more_label.pack(anchor="w")
+
+            current_date += timedelta(days=1)
+
+        # 更新统计信息
+        self.update_stats()
+
+    def previous_month(self):
+        """切换到上个月"""
+        if self.current_date.month == 1:
+            self.current_date = datetime(self.current_date.year - 1, 12, 1)
+        else:
+            self.current_date = datetime(self.current_date.year, self.current_date.month - 1, 1)
+        self.update_month_view()
+
+    def next_month(self):
+        """切换到下个月"""
+        if self.current_date.month == 12:
+            self.current_date = datetime(self.current_date.year + 1, 1, 1)
+        else:
+            self.current_date = datetime(self.current_date.year, self.current_date.month + 1, 1)
+        self.update_month_view()
+
+    def update_stats(self):
+        """更新统计信息"""
+        # 计算当前月份的课程总数
+        month_courses = [c for c in self.app.courses
+                    if c[3] <= self.app.current_week <= c[4]]
+        
+        # 计算特殊课程数
+        special_count = len([c for c in month_courses if c[10] == 1])
+        
+        # 更新统计标签
+        self.total_courses.config(text=f"总课程数: {len(month_courses)}")
+        self.special_courses.config(text=f"特殊课程: {special_count}")
