@@ -249,8 +249,7 @@ class AddSemesterDialog:
         start_frame.pack(fill="x", pady=(0, 15))
         tb.Label(start_frame, text="开始日期:", font=("Helvetica", 12)).pack(side=LEFT)
         self.start_date = tb.DateEntry(start_frame, bootstyle="primary", 
-                                    dateformat="%Y-%m-%d",
-                                    font=("Helvetica", 11))  # 增大字体
+                                    dateformat="%Y-%m-%d")  # 移除font参数
         self.start_date.pack(side=LEFT, padx=10)
 
         # 结束日期
@@ -258,8 +257,7 @@ class AddSemesterDialog:
         end_frame.pack(fill="x", pady=(0, 15))
         tb.Label(end_frame, text="结束日期:", font=("Helvetica", 12)).pack(side=LEFT)
         self.end_date = tb.DateEntry(end_frame, bootstyle="primary",
-                                dateformat="%Y-%m-%d",
-                                font=("Helvetica", 11))  # 增大字体
+                                dateformat="%Y-%m-%d")  # 移除font参数
         self.end_date.pack(side=LEFT, padx=10)
 
         # 按钮
