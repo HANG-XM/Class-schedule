@@ -70,8 +70,8 @@ class CourseManager:
         cursor = conn.cursor()
         cursor.execute('''
             INSERT INTO courses (name, teacher, location, start_week, end_week, 
-                               day_of_week, start_time, end_time, color, course_type, is_special)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            day_of_week, start_time, end_time, color, course_type, is_special, semester_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', course_data)
         conn.commit()
         conn.close()

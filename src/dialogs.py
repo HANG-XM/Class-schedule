@@ -226,7 +226,7 @@ class AddCourseDialog:
                 self.color_var.get(),
                 self.type_var.get(),
                 1 if self.type_var.get() == "调休" else 0,
-                self.app.current_semester[0]  # 添加学期ID
+                self.app.current_semester[0]  # 学期ID
             )
 
             self.app.course_manager.add_course(course_data)
