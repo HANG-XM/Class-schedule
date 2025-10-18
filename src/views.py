@@ -1,6 +1,6 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-from datetime import datetime
+from datetime import datetime,timedelta
 
 class WeekView:
     def __init__(self, parent, app):
@@ -159,8 +159,12 @@ class MonthView:
                                     font=("Helvetica", 12))
         self.special_courses.pack(side=LEFT, padx=20)
 
-        # 日历主体
-        self.calendar_frame = tb.Frame(main_container)
+        # 日历容器
+        calendar_container = tb.Frame(main_container)
+        calendar_container.pack(fill=BOTH, expand=True)
+
+        # 创建日历网格
+        self.calendar_frame = tb.Frame(calendar_container)
         self.calendar_frame.pack(fill=BOTH, expand=True)
 
         # 初始化当前日期
@@ -181,27 +185,34 @@ class MonthView:
         # 添加星期标题
         week_days = ["一", "二", "三", "四", "五", "六", "日"]
         for day in week_days:
-            tb.Label(self.calendar_frame, text=day, width=4,
-                    font=("Helvetica", 10, "bold")).pack(side=LEFT, padx=2)
+            tb.Label(self.calendar_frame, text=day, 
+                    font=("Helvetica", 10, "bold"),
+                    padding=10).grid(row=0, column=week_days.index(day),
+                                sticky="nsew", padx=1, pady=1)
 
         # 获取月份第一天和最后一天
         first_day = datetime(year, month, 1)
         last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
 
         # 添加空白格子
-        for _ in range(first_day.weekday()):
-            tb.Frame(self.calendar_frame, width=60, height=60).pack(side=LEFT)
+        first_weekday = first_day.weekday()
+        for i in range(first_weekday):
+            tb.Frame(self.calendar_frame, relief="ridge", borderwidth=1).grid(
+                row=1, column=i, sticky="nsew", padx=1, pady=1)
 
         # 添加日期格子
         current_date = first_day
+        week_num = 1
         while current_date <= last_day:
-            day_frame = tb.Frame(self.calendar_frame, relief=RIDGE, borderwidth=1)
-            day_frame.pack(side=LEFT, fill=BOTH, expand=True, padx=2, pady=2)
+            day_frame = tb.Frame(self.calendar_frame, relief="ridge", borderwidth=1)
+            day_frame.grid(row=week_num, column=current_date.weekday(),
+                        sticky="nsew", padx=1, pady=1)
 
             # 日期标签
             date_label = tb.Label(day_frame, text=str(current_date.day),
-                                font=("Helvetica", 12))
-            date_label.pack()
+                                font=("Helvetica", 12, "bold"),
+                                padding=5)
+            date_label.pack(anchor="nw")
 
             # 获取当天的课程
             day_courses = [c for c in self.app.courses
@@ -211,25 +222,34 @@ class MonthView:
             # 显示课程
             if day_courses:
                 course_frame = tb.Frame(day_frame)
-                course_frame.pack(fill=BOTH, expand=True)
+                course_frame.pack(fill=BOTH, expand=True, padx=5, pady=2)
                 
                 # 最多显示3门课程
                 for i, course in enumerate(day_courses[:3]):
                     course_label = tb.Label(course_frame, 
-                                        text=course[1][:4],  # 只显示课程名前4个字符
-                                        font=("Helvetica", 9),
+                                        text=course[1][:6],  # 显示课程名前6个字符
+                                        font=("Helvetica", 8),
                                         bootstyle=course[8])
-                    course_label.pack(anchor="w")
+                    course_label.pack(fill=X, pady=1)
                 
                 # 如果课程数超过3，显示"+N"
                 if len(day_courses) > 3:
                     more_label = tb.Label(course_frame,
                                         text=f"+{len(day_courses)-3}",
-                                        font=("Helvetica", 9),
+                                        font=("Helvetica", 8),
                                         bootstyle="info")
-                    more_label.pack(anchor="w")
+                    more_label.pack(fill=X)
 
+            # 移动到下一天
             current_date += timedelta(days=1)
+            if current_date.weekday() == 0:
+                week_num += 1
+
+        # 配置网格权重
+        for i in range(7):
+            self.calendar_frame.columnconfigure(i, weight=1)
+        for i in range(week_num + 1):
+            self.calendar_frame.rowconfigure(i, weight=1)
 
         # 更新统计信息
         self.update_stats()
