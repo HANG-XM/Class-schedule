@@ -1,5 +1,6 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from tkinter import messagebox  # 添加这行导入语句
 from logger_config import logger
 class TopBar:
     def __init__(self, parent, app):
