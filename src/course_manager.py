@@ -11,21 +11,52 @@ class CourseManager:
         conn = sqlite3.connect('courses.db')
         cursor = conn.cursor()
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS courses (
+            CREATE TABLE IF NOT EXISTS semesters (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
-                teacher TEXT,
-                location TEXT,
-                start_week INTEGER,
-                end_week INTEGER,
-                day_of_week INTEGER,
-                start_time TEXT,
-                end_time TEXT,
-                color TEXT,
-                course_type TEXT,
-                is_special INTEGER DEFAULT 0
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
+                current INTEGER DEFAULT 0
             )
         ''')
+        conn.commit()
+        conn.close()
+
+    def add_semester(self, name, start_date, end_date):
+        """添加学期"""
+        conn = sqlite3.connect('courses.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO semesters (name, start_date, end_date)
+            VALUES (?, ?, ?)
+        ''', (name, start_date, end_date))
+        conn.commit()
+        conn.close()
+
+    def get_semesters(self):
+        """获取所有学期"""
+        conn = sqlite3.connect('courses.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM semesters ORDER BY start_date')
+        semesters = cursor.fetchall()
+        conn.close()
+        return semesters
+
+    def get_current_semester(self):
+        """获取当前学期"""
+        conn = sqlite3.connect('courses.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM semesters WHERE current = 1')
+        semester = cursor.fetchone()
+        conn.close()
+        return semester
+
+    def set_current_semester(self, semester_id):
+        """设置当前学期"""
+        conn = sqlite3.connect('courses.db')
+        cursor = conn.cursor()
+        cursor.execute('UPDATE semesters SET current = 0')
+        cursor.execute('UPDATE semesters SET current = 1 WHERE id = ?', (semester_id,))
         conn.commit()
         conn.close()
     

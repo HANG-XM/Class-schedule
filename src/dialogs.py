@@ -1,6 +1,7 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from tkinter import messagebox
+from datetime import datetime
 
 class AddCourseDialog:
     def __init__(self, parent, app):
@@ -12,7 +13,7 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("400x500")  # 减小窗口尺寸
+        self.dialog.geometry("400x500")
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
 
@@ -26,7 +27,7 @@ class AddCourseDialog:
 
         # 标题
         title_label = tb.Label(form_frame, text="添加新课程",
-                             font=("Helvetica", 14, "bold"),  # 减小字体
+                             font=("Helvetica", 14, "bold"),
                              bootstyle=PRIMARY)
         title_label.pack(pady=(0, 10))
 
@@ -170,7 +171,8 @@ class AddCourseDialog:
                 end_time,
                 self.color_var.get(),
                 self.type_var.get(),
-                1 if self.type_var.get() == "调休" else 0
+                1 if self.type_var.get() == "调休" else 0,
+                self.app.current_semester[0]  # 添加学期ID
             )
 
             self.app.course_manager.add_course(course_data)
@@ -184,3 +186,61 @@ class AddCourseDialog:
         except Exception as e:
             messagebox.showerror("错误", f"添加课程失败: {str(e)}")
 
+class AddSemesterDialog:
+    def __init__(self, parent, app):
+        self.parent = parent
+        self.app = app
+        self.create_dialog()
+
+    def create_dialog(self):
+        """创建新建学期对话框"""
+        self.dialog = tb.Toplevel(self.parent)
+        self.dialog.title("新建学期")
+        self.dialog.geometry("300x200")
+        self.dialog.transient(self.parent)
+        self.dialog.grab_set()
+
+        main_frame = tb.Frame(self.dialog, padding=20)
+        main_frame.pack(fill=BOTH, expand=True)
+
+        # 学期名称
+        tb.Label(main_frame, text="学期名称:").pack(anchor="w", pady=5)
+        self.name_entry = tb.Entry(main_frame)
+        self.name_entry.pack(fill="x", pady=5)
+
+        # 开始日期
+        tb.Label(main_frame, text="开始日期:").pack(anchor="w", pady=5)
+        self.start_date = tb.Entry(main_frame)
+        self.start_date.pack(fill="x", pady=5)
+
+        # 结束日期
+        tb.Label(main_frame, text="结束日期:").pack(anchor="w", pady=5)
+        self.end_date = tb.Entry(main_frame)
+        self.end_date.pack(fill="x", pady=5)
+
+        # 按钮
+        btn_frame = tb.Frame(main_frame)
+        btn_frame.pack(fill="x", pady=10)
+        
+        tb.Button(btn_frame, text="取消", command=self.dialog.destroy,
+                 bootstyle=(SECONDARY, OUTLINE)).pack(side="right", padx=5)
+        tb.Button(btn_frame, text="保存", command=self.save_semester,
+                 bootstyle=(SUCCESS, OUTLINE)).pack(side="right", padx=5)
+
+    def save_semester(self):
+        """保存学期"""
+        try:
+            name = self.name_entry.get().strip()
+            start = self.start_date.get().strip()
+            end = self.end_date.get().strip()
+            
+            if not all([name, start, end]):
+                raise ValueError("请填写完整信息")
+                
+            self.app.course_manager.add_semester(name, start, end)
+            self.app.semesters = self.app.course_manager.get_semesters()
+            self.dialog.destroy()
+            messagebox.showinfo("成功", "学期创建成功！")
+            
+        except ValueError as ve:
+            messagebox.showerror("错误", str(ve))

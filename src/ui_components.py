@@ -51,6 +51,33 @@ class TopBar:
         tb.Button(control_frame, text="添加课程", command=self.app.show_add_course_dialog,
                  bootstyle=SUCCESS).pack(side=LEFT, padx=10)
 
+        # 添加学期选择器
+        semester_frame = tb.Frame(top_frame)
+        semester_frame.pack(side=RIGHT, padx=10)
+        
+        tb.Label(semester_frame, text="学期:").pack(side=LEFT)
+        self.semester_var = tb.StringVar()
+        semester_combo = tb.Combobox(semester_frame, textvariable=self.semester_var,
+                                values=[s[1] for s in self.app.semesters],
+                                state="readonly", width=15)
+        semester_combo.pack(side=LEFT, padx=5)
+        semester_combo.set(self.app.current_semester[1])
+        semester_combo.bind('<<ComboboxSelected>>', self.on_semester_change)
+        
+        # 添加新建学期按钮
+        tb.Button(semester_frame, text="新建学期",
+                command=self.show_add_semester_dialog,
+                bootstyle=(PRIMARY, OUTLINE)).pack(side=LEFT, padx=5)
+    def on_semester_change(self, event):
+        """学期切换事件"""
+        selected_name = event.widget.get()
+        for semester in self.app.semesters:
+            if semester[1] == selected_name:
+                self.app.course_manager.set_current_semester(semester[0])
+                self.app.current_semester = semester
+                self.app.load_courses()
+                self.app.update_display()
+                break
 class StatsPanel:
     def __init__(self, parent):
         self.parent = parent
