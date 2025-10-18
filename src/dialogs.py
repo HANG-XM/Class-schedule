@@ -13,46 +13,20 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("600x700")  # 调整窗口大小
+        self.dialog.geometry("590x760")  # 调整窗口大小
         self.dialog.resizable(False, False)
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
 
         # 创建主容器
-        main_frame = tb.Frame(self.dialog, padding=15)  # 减小padding
+        main_frame = tb.Frame(self.dialog, padding=10)
         main_frame.pack(fill=BOTH, expand=True)
 
-        # 创建滚动区域
-        self.create_scrollable_form(main_frame)
+        # 创建表单区域
+        self.create_form_content(main_frame)
 
         # 按钮区域
         self.create_button_area(main_frame)
-
-    def create_scrollable_form(self, parent):
-        """创建可滚动的表单区域"""
-        # 创建画布和滚动条
-        canvas = tb.Canvas(parent)
-        scrollbar = tb.Scrollbar(parent, orient="vertical", command=canvas.yview)
-        scrollable_frame = tb.Frame(canvas)
-
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        # 添加鼠标滚轮支持
-        def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
-        canvas.bind("<MouseWheel>", _on_mousewheel)
-
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-
-        # 创建表单内容
-        self.create_form_content(scrollable_frame)
 
     def create_form_content(self, parent):
         """创建表单内容"""
