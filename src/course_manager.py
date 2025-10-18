@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 from typing import List, Tuple
-
+from main import logger
 class CourseManager:
     def __init__(self):
         self.init_database()
@@ -62,9 +62,17 @@ class CourseManager:
             # 如果没有当前学期，创建默认学期
             if not self.get_current_semester():
                 self.add_semester("默认学期", "2023-09-01", "2024-01-20")
-                current_semester = self.get_current_semester()
-                # 更新所有现有课程的semester_id
+            
+            # 获取当前学期ID
+            current_semester = self.get_current_semester()
+            if current_semester:
+                # 更新所有现有课程的semester_id为当前学期ID
                 cursor.execute('UPDATE courses SET semester_id = ?', (current_semester[0],))
+            else:
+                # 如果还是没有当前学期，使用第一个学期
+                semesters = self.get_semesters()
+                if semesters:
+                    cursor.execute('UPDATE courses SET semester_id = ?', (semesters[0][0],))
         
         conn.commit()
         conn.close()
@@ -126,6 +134,7 @@ class CourseManager:
             course_data[10], # is_special
             course_data[11]  # semester_id
         )
+        logger.info(f"保存课程时使用的学期ID: {course_data[11]}")
         cursor.execute('''
             INSERT INTO courses (name, teacher, location, start_week, end_week, 
                             day_of_week, start_time, end_time, color, course_type, is_special, semester_id)
@@ -141,9 +150,13 @@ class CourseManager:
         cursor.execute('SELECT * FROM courses ORDER BY semester_id, day_of_week, start_time')
         courses = cursor.fetchall()
         conn.close()
+        logger.info(f"数据库中的课程数: {len(courses)}")
+        for course in courses:  # 添加调试信息
+            print(f"课程信息: {course}, 学期ID: {course[11]}")
         # 过滤掉无效数据
-        return [c for c in courses if self._is_valid_course(c)]
-
+        valid_courses = [c for c in courses if self._is_valid_course(c)]
+        logger.info(f"有效课程数: {len(valid_courses)}")
+        return valid_courses
     def _is_valid_course(self, course: Tuple) -> bool:
         """验证课程数据是否有效"""
         try:
@@ -151,14 +164,18 @@ class CourseManager:
             int(course[3])  # start_week
             int(course[4])  # end_week
             # 检查其他必要字段
-            return all([
+            is_valid = all([
                 course[1],  # name
                 course[2],  # teacher
                 course[5],  # day_of_week
                 course[6],  # start_time
                 course[7],  # end_time
             ])
-        except (ValueError, TypeError, IndexError):
+            if not is_valid:
+                logger.warning(f"无效课程数据: {course}")
+            return is_valid
+        except (ValueError, TypeError, IndexError) as e:
+            logger.error(f"课程数据验证失败: {course}, 错误: {e}")
             return False
     
     def delete_course(self, course_id: int) -> None:

@@ -2,7 +2,7 @@ import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from tkinter import messagebox
 from datetime import datetime
-
+from main import logger
 class AddCourseDialog:
     def __init__(self, parent, app):
         self.parent = parent
@@ -260,6 +260,7 @@ class AddCourseDialog:
         # 验证输入
         errors = self.validate_inputs()
         if errors:
+            logger.warning(f"课程验证失败: {errors}")
             messagebox.showerror("输入错误", "\n".join(errors))
             return
             
@@ -284,6 +285,7 @@ class AddCourseDialog:
                 self.app.current_semester[0]  # 学期ID
             )
 
+            logger.info(f"准备保存课程: {course_data[0]}")
             # 保存到数据库
             self.app.course_manager.add_course(course_data)
             
@@ -293,9 +295,11 @@ class AddCourseDialog:
             
             # 关闭对话框并提示成功
             self.dialog.destroy()
+            logger.info(f"课程保存成功: {course_data[0]}")
             messagebox.showinfo("成功", "课程添加成功！")
 
         except Exception as e:
+            logger.error(f"添加课程失败: {str(e)}")
             messagebox.showerror("错误", f"添加课程失败: {str(e)}")
 
 class AddSemesterDialog:

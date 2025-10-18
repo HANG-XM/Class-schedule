@@ -1,6 +1,6 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-
+from main import logger
 class TopBar:
     def __init__(self, parent, app):
         self.parent = parent

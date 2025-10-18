@@ -1,7 +1,7 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from datetime import datetime,timedelta
-
+from main import logger
 class WeekView:
     def __init__(self, parent, app):
         self.parent = parent
@@ -18,6 +18,7 @@ class WeekView:
         # 清空现有内容
         for widget in self.frame.winfo_children():
             widget.destroy()
+        logger.info(f"显示第 {self.app.current_week} 周的课程")
 
         # 创建表格
         columns = ["时间"] + self.app.days_of_week
