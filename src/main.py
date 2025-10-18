@@ -34,6 +34,9 @@ class ModernCourseScheduleApp:
         # 初始化courses属性
         self.courses = []
 
+        # 初始化学期数据
+        self.init_semesters()
+
         # 初始化当前周数
         self.current_week = self.get_current_week()
 
@@ -43,12 +46,9 @@ class ModernCourseScheduleApp:
         # 设置周数选择器的值
         self.top_bar.week_var.set(self.current_week)
         
-        self.current_semester = None
-        self.semesters = []
-        self.init_semesters()
-
         self.load_courses()
         self.update_display()
+
     def init_semesters(self):
         """初始化学期"""
         self.semesters = self.course_manager.get_semesters()
