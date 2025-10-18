@@ -13,13 +13,13 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("500x650")
+        self.dialog.geometry("600x700")  # 调整窗口大小
         self.dialog.resizable(False, False)
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
 
         # 创建主容器
-        main_frame = tb.Frame(self.dialog, padding=20)
+        main_frame = tb.Frame(self.dialog, padding=15)  # 减小padding
         main_frame.pack(fill=BOTH, expand=True)
 
         # 创建滚动区域
@@ -31,7 +31,7 @@ class AddCourseDialog:
     def create_scrollable_form(self, parent):
         """创建可滚动的表单区域"""
         # 创建画布和滚动条
-        canvas = tb.Canvas(parent, height=500)
+        canvas = tb.Canvas(parent)
         scrollbar = tb.Scrollbar(parent, orient="vertical", command=canvas.yview)
         scrollable_frame = tb.Frame(canvas)
 
@@ -42,6 +42,11 @@ class AddCourseDialog:
 
         canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
+
+        # 添加鼠标滚轮支持
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        canvas.bind("<MouseWheel>", _on_mousewheel)
 
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
@@ -68,39 +73,39 @@ class AddCourseDialog:
 
     def create_basic_info_section(self, parent):
         """创建基本信息部分"""
-        section_frame = tb.LabelFrame(parent, text="基本信息", padding=15)
-        section_frame.pack(fill=X, pady=(0, 10))
+        section_frame = tb.LabelFrame(parent, text="基本信息", padding=10)
+        section_frame.pack(fill=X, pady=5)
 
         # 课程名称
         name_frame = tb.Frame(section_frame)
-        name_frame.pack(fill=X, pady=5)
+        name_frame.pack(fill=X, pady=3)
         tb.Label(name_frame, text="课程名称:", width=10).pack(side=LEFT)
-        self.name_entry = tb.Entry(name_frame, font=("Helvetica", 11))
+        self.name_entry = tb.Entry(name_frame, font=("Helvetica", 10))
         self.name_entry.pack(side=LEFT, fill=X, expand=True, padx=(10, 0))
 
         # 任课老师
         teacher_frame = tb.Frame(section_frame)
-        teacher_frame.pack(fill=X, pady=5)
+        teacher_frame.pack(fill=X, pady=3)
         tb.Label(teacher_frame, text="任课老师:", width=10).pack(side=LEFT)
-        self.teacher_entry = tb.Entry(teacher_frame, font=("Helvetica", 11))
+        self.teacher_entry = tb.Entry(teacher_frame, font=("Helvetica", 10))
         self.teacher_entry.pack(side=LEFT, fill=X, expand=True, padx=(10, 0))
 
         # 上课地点
         location_frame = tb.Frame(section_frame)
-        location_frame.pack(fill=X, pady=5)
+        location_frame.pack(fill=X, pady=3)
         tb.Label(location_frame, text="上课地点:", width=10).pack(side=LEFT)
-        self.location_entry = tb.Entry(location_frame, font=("Helvetica", 11))
+        self.location_entry = tb.Entry(location_frame, font=("Helvetica", 10))
         self.location_entry.pack(side=LEFT, fill=X, expand=True, padx=(10, 0))
 
     def create_time_section(self, parent):
         """创建时间选择部分"""
-        section_frame = tb.LabelFrame(parent, text="上课时间", padding=15)
-        section_frame.pack(fill=X, pady=(0, 10))
+        section_frame = tb.LabelFrame(parent, text="上课时间", padding=10)
+        section_frame.pack(fill=X, pady=5)
 
         # 时间预览
         self.time_preview = tb.Label(section_frame, text="请选择时间段", 
                                    font=("Helvetica", 10), bootstyle=INFO)
-        self.time_preview.pack(fill=X, pady=(0, 10))
+        self.time_preview.pack(fill=X, pady=(0, 5))
 
         # 时间选择
         time_select_frame = tb.Frame(section_frame)
@@ -110,19 +115,19 @@ class AddCourseDialog:
         self.start_time = tb.Combobox(time_select_frame, 
                                     values=[f"{start}-{end}" for start, end in self.app.time_slots],
                                     state="readonly", 
-                                    font=("Helvetica", 11),
+                                    font=("Helvetica", 10),
                                     width=15)
         self.start_time.pack(side=LEFT, padx=(10, 0))
         self.start_time.bind("<<ComboboxSelected>>", self.update_time_preview)
 
     def create_type_color_section(self, parent):
         """创建类型和颜色选择部分"""
-        section_frame = tb.LabelFrame(parent, text="课程样式", padding=15)
-        section_frame.pack(fill=X, pady=(0, 10))
+        section_frame = tb.LabelFrame(parent, text="课程样式", padding=10)
+        section_frame.pack(fill=X, pady=5)
 
         # 类型选择
         type_frame = tb.Frame(section_frame)
-        type_frame.pack(fill=X, pady=(0, 10))
+        type_frame.pack(fill=X, pady=(0, 5))
         
         tb.Label(type_frame, text="课程类型:").pack(side=LEFT)
         
@@ -131,14 +136,14 @@ class AddCourseDialog:
         
         self.type_var = tb.StringVar(value="正常")
         tb.Radiobutton(type_btn_frame, text="正常课程", variable=self.type_var, 
-                      value="正常", command=self.update_type_preview).pack(side=LEFT, padx=(0, 15))
+                      value="正常", command=self.update_type_preview).pack(side=LEFT, padx=(0, 10))
         tb.Radiobutton(type_btn_frame, text="调休课程", variable=self.type_var, 
                       value="调休", command=self.update_type_preview).pack(side=LEFT)
 
         # 类型预览
         self.type_preview = tb.Label(section_frame, text="普通课程", 
                                    font=("Helvetica", 9), bootstyle=SECONDARY)
-        self.type_preview.pack(fill=X, pady=(0, 10))
+        self.type_preview.pack(fill=X, pady=(0, 5))
 
         # 颜色选择
         color_frame = tb.Frame(section_frame)
@@ -163,8 +168,8 @@ class AddCourseDialog:
 
     def create_week_section(self, parent):
         """创建周数设置部分"""
-        section_frame = tb.LabelFrame(parent, text="周数范围", padding=15)
-        section_frame.pack(fill=X, pady=(0, 10))
+        section_frame = tb.LabelFrame(parent, text="周数范围", padding=10)
+        section_frame.pack(fill=X, pady=5)
 
         week_frame = tb.Frame(section_frame)
         week_frame.pack(fill=X)
@@ -175,14 +180,14 @@ class AddCourseDialog:
         week_input_frame.pack(side=LEFT, padx=(10, 0))
         
         self.start_week = tb.Spinbox(week_input_frame, from_=1, to=20, 
-                                   width=5, font=("Helvetica", 11))
+                                   width=5, font=("Helvetica", 10))
         self.start_week.set(1)
         self.start_week.pack(side=LEFT)
         
         tb.Label(week_input_frame, text=" 至 ").pack(side=LEFT)
         
         self.end_week = tb.Spinbox(week_input_frame, from_=1, to=20, 
-                                 width=5, font=("Helvetica", 11))
+                                 width=5, font=("Helvetica", 10))
         self.end_week.set(16)
         self.end_week.pack(side=LEFT)
         
@@ -190,8 +195,8 @@ class AddCourseDialog:
 
     def create_day_section(self, parent):
         """创建星期选择部分"""
-        section_frame = tb.LabelFrame(parent, text="上课星期", padding=15)
-        section_frame.pack(fill=X, pady=(0, 10))
+        section_frame = tb.LabelFrame(parent, text="上课星期", padding=10)
+        section_frame.pack(fill=X, pady=5)
 
         day_frame = tb.Frame(section_frame)
         day_frame.pack(fill=X)
@@ -217,11 +222,11 @@ class AddCourseDialog:
     def create_button_area(self, parent):
         """创建按钮区域"""
         btn_frame = tb.Frame(parent)
-        btn_frame.pack(fill=X, pady=(20, 0))
+        btn_frame.pack(fill=X, pady=10)
 
         # 添加一些间距和分隔线
         separator = tb.Separator(btn_frame, orient=HORIZONTAL)
-        separator.pack(fill=X, pady=(0, 15))
+        separator.pack(fill=X, pady=5)
 
         btn_inner_frame = tb.Frame(btn_frame)
         btn_inner_frame.pack(fill=X)
