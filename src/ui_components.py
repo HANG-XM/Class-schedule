@@ -68,6 +68,7 @@ class TopBar:
         tb.Button(semester_frame, text="新建学期",
                 command=self.show_add_semester_dialog,
                 bootstyle=(PRIMARY, OUTLINE)).pack(side=LEFT, padx=5)
+
     def on_semester_change(self, event):
         """学期切换事件"""
         selected_name = event.widget.get()
@@ -78,6 +79,11 @@ class TopBar:
                 self.app.load_courses()
                 self.app.update_display()
                 break
+
+    def show_add_semester_dialog(self):
+        """显示新建学期对话框"""
+        from dialogs import AddSemesterDialog
+        AddSemesterDialog(self.parent, self.app)
 class StatsPanel:
     def __init__(self, parent):
         self.parent = parent
