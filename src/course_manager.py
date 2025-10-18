@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 from typing import List, Tuple
-from main import logger
+from logger_config import logger
 class CourseManager:
     def __init__(self):
         self.init_database()

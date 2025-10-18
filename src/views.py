@@ -1,7 +1,7 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from datetime import datetime,timedelta
-from main import logger
+from logger_config import logger
 class WeekView:
     def __init__(self, parent, app):
         self.parent = parent

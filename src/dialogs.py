@@ -2,7 +2,7 @@ import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from tkinter import messagebox
 from datetime import datetime
-from main import logger
+from logger_config import logger
 class AddCourseDialog:
     def __init__(self, parent, app):
         self.parent = parent

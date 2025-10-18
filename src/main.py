@@ -7,23 +7,7 @@ from course_manager import CourseManager, SpecialCourse
 from ui_components import TopBar, StatsPanel
 from views import WeekView, DayView, MonthView
 from dialogs import AddCourseDialog
-import logging
-
-import logging
-
-# 配置日志系统
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
-    handlers=[
-        logging.StreamHandler(),  # 控制台输出
-        logging.FileHandler('app.log', encoding='utf-8')  # 文件输出
-    ]
-)
-
-# 创建全局logger
-logger = logging.getLogger('CourseSchedule')
+from logger_config import logger
 
 class ModernCourseScheduleApp:
     def __init__(self):
