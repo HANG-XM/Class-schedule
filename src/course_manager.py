@@ -117,46 +117,52 @@ class CourseManager:
     
     def add_course(self, course_data: Tuple) -> None:
         """添加课程"""
-        conn = sqlite3.connect('courses.db')
-        cursor = conn.cursor()
-        # 将周数转换为整数
-        processed_data = (
-            course_data[0],  # name
-            course_data[1],  # teacher
-            course_data[2],  # location
-            int(course_data[3]),  # start_week
-            int(course_data[4]),  # end_week
-            course_data[5],  # day_of_week
-            course_data[6],  # start_time
-            course_data[7],  # end_time
-            course_data[8],  # color
-            course_data[9],  # course_type
-            course_data[10], # is_special
-            course_data[11]  # semester_id
-        )
-        logger.info(f"保存课程时使用的学期ID: {course_data[11]}")
-        cursor.execute('''
-            INSERT INTO courses (name, teacher, location, start_week, end_week, 
-                            day_of_week, start_time, end_time, color, course_type, is_special, semester_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', processed_data)
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect('courses.db')
+            cursor = conn.cursor()
+            # 将周数转换为整数
+            processed_data = (
+                course_data[0],  # name
+                course_data[1],  # teacher
+                course_data[2],  # location
+                int(course_data[3]),  # start_week
+                int(course_data[4]),  # end_week
+                course_data[5],  # day_of_week
+                course_data[6],  # start_time
+                course_data[7],  # end_time
+                course_data[8],  # color
+                course_data[9],  # course_type
+                course_data[10], # is_special
+                course_data[11]  # semester_id
+            )
+            cursor.execute('''
+                INSERT INTO courses (name, teacher, location, start_week, end_week, 
+                                day_of_week, start_time, end_time, color, course_type, is_special, semester_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', processed_data)
+            conn.commit()
+            logger.info(f"成功添加课程: {course_data[0]},保存课程时使用的学期ID: {course_data[11]}")
+        except Exception as e:
+            logger.error(f"添加课程失败: {str(e)}")
+            raise
+        finally:
+            conn.close()
     
     def get_courses(self) -> List[Tuple]:
         """获取所有课程"""
-        conn = sqlite3.connect('courses.db')
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM courses ORDER BY semester_id, day_of_week, start_time')
-        courses = cursor.fetchall()
-        conn.close()
-        logger.info(f"数据库中的课程数: {len(courses)}")
-        for course in courses:  # 添加调试信息
-            print(f"课程信息: {course}, 学期ID: {course[11]}")
-        # 过滤掉无效数据
-        valid_courses = [c for c in courses if self._is_valid_course(c)]
-        logger.info(f"有效课程数: {len(valid_courses)}")
-        return valid_courses
+        try:
+            conn = sqlite3.connect('courses.db')
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM courses ORDER BY semester_id, day_of_week, start_time')
+            courses = cursor.fetchall()
+            valid_courses = [c for c in courses if self._is_valid_course(c)]
+            logger.info(f"获取到 {len(valid_courses)} 门有效课程")
+            return valid_courses
+        except Exception as e:
+            logger.error(f"获取课程列表失败: {str(e)}")
+            return []
+        finally:
+            conn.close()
     def _is_valid_course(self, course: Tuple) -> bool:
         """验证课程数据是否有效"""
         try:

@@ -97,10 +97,9 @@ class ModernCourseScheduleApp:
     def load_courses(self):
         """加载课程数据"""
         self.courses = self.course_manager.get_courses()
-        logger.info(f"加载的所有课程数: {len(self.courses)}")
         # 过滤当前学期的课程
         self.courses = [c for c in self.courses if c[11] == self.current_semester[0]]
-        logger.info(f"当前学期课程数: {len(self.courses)}")
+        logger.info(f"已加载当前学期课程，共 {len(self.courses)} 门")
         logger.info(f"当前学期ID: {self.current_semester[0]}")
 
     def update_display(self):
@@ -133,13 +132,14 @@ class ModernCourseScheduleApp:
         """切换视图"""
         self.current_view = view
         self.update_display()
+        logger.info(f"视图已切换到: {view}")
 
     def on_theme_change(self, event):
         """主题切换事件"""
         new_theme = event.widget.get()
         self.style.theme_use(new_theme)
         self.current_theme = new_theme
-
+        logger.info(f"主题已切换到: {new_theme}")
         # 重置表格样式
         style = ttk.Style()
         style.configure("Treeview", rowheight=100)

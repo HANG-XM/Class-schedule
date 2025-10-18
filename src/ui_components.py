@@ -72,13 +72,18 @@ class TopBar:
     def on_semester_change(self, event):
         """学期切换事件"""
         selected_name = event.widget.get()
-        for semester in self.app.semesters:
-            if semester[1] == selected_name:
-                self.app.course_manager.set_current_semester(semester[0])
-                self.app.current_semester = semester
-                self.app.load_courses()  # 重新加载课程
-                self.app.update_display()  # 更新显示
-                break
+        try:
+            for semester in self.app.semesters:
+                if semester[1] == selected_name:
+                    self.app.course_manager.set_current_semester(semester[0])
+                    self.app.current_semester = semester
+                    self.app.load_courses()
+                    self.app.update_display()
+                    logger.info(f"已切换到学期: {selected_name}")
+                    break
+        except Exception as e:
+            logger.error(f"切换学期失败: {str(e)}")
+            messagebox.show_error("错误", "切换学期失败")
 
     def show_add_semester_dialog(self):
         """显示新建学期对话框"""

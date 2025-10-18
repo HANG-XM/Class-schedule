@@ -1,7 +1,8 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-from datetime import datetime,timedelta
+from datetime import datetime, timedelta
 from logger_config import logger
+
 class WeekView:
     def __init__(self, parent, app):
         self.parent = parent
@@ -18,58 +19,62 @@ class WeekView:
         # 清空现有内容
         for widget in self.frame.winfo_children():
             widget.destroy()
-        logger.info(f"显示第 {self.app.current_week} 周的课程")
+        try:
+            week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
+                        if c[11] == self.app.current_semester[0]]
+            logger.info(f"正在显示第 {self.app.current_week} 周课程，共 {len(week_courses)} 门")
 
-        # 创建表格
-        columns = ["时间"] + self.app.days_of_week
-        tree = tb.Treeview(self.frame, columns=columns, show="tree headings", height=22)
+            # 创建表格
+            columns = ["时间"] + self.app.days_of_week
+            tree = tb.Treeview(self.frame, columns=columns, show="tree headings", height=22)
 
-        # 设置列宽和样式
-        style = tb.Style()
-        style.configure("Treeview", rowheight=100)
-        tree.configure(style="Treeview")
+            # 设置列宽和样式
+            style = tb.Style()
+            style.configure("Treeview", rowheight=100)
+            tree.configure(style="Treeview")
 
-        tree.column("#0", width=0, stretch=NO)
-        tree.column("时间", width=90, anchor=CENTER)
-        for day in self.app.days_of_week:
-            tree.column(day, width=180, anchor=CENTER)
+            tree.column("#0", width=0, stretch=NO)
+            tree.column("时间", width=90, anchor=CENTER)
+            for day in self.app.days_of_week:
+                tree.column(day, width=180, anchor=CENTER)
 
-        # 设置表头样式
-        for col in columns:
-            tree.heading(col, text=col)
-            tree.column(col, minwidth=100)
+            # 设置表头样式
+            for col in columns:
+                tree.heading(col, text=col)
+                tree.column(col, minwidth=100)
 
-        # 添加时间行
-        for i, (start, end) in enumerate(self.app.time_slots):
-            values = [f"{start}\n{end}"] + [""] * 7
-            tree.insert("", "end", values=values)
-
-        # 添加课程到表格
-        week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
-                    if c[11] == self.app.current_semester[0]]  # 添加学期ID过滤
-        for course in week_courses:
-            day_index = course[5]  # 星期几 (1-7)
-            time_index = None
-
-            # 找到对应的时间段
+            # 添加时间行
             for i, (start, end) in enumerate(self.app.time_slots):
-                if course[6] == start and course[7] == end:
-                    time_index = i
-                    break
+                values = [f"{start}\n{end}"] + [""] * 7
+                tree.insert("", "end", values=values)
 
-            if time_index is not None:
-                # 获取树中的项目ID
-                item_id = tree.get_children()[time_index]
+            # 添加课程到表格
+            for course in week_courses:
+                day_index = course[5]  # 星期几 (1-7)
+                time_index = None
 
-                # 获取当前值并更新
-                current_values = list(tree.item(item_id, "values"))
-                course_text = f"{course[1]}\n{course[2]}\n{course[3]}-{course[4]}周"
-                current_values[day_index] = course_text
+                # 找到对应的时间段
+                for i, (start, end) in enumerate(self.app.time_slots):
+                    if course[6] == start and course[7] == end:
+                        time_index = i
+                        break
 
-                # 更新值
-                tree.item(item_id, values=current_values)
+                if time_index is not None:
+                    # 获取树中的项目ID
+                    item_id = tree.get_children()[time_index]
 
-        tree.pack(fill=BOTH, expand=True)
+                    # 获取当前值并更新
+                    current_values = list(tree.item(item_id, "values"))
+                    course_text = f"{course[1]}\n{course[2]}\n{course[3]}-{course[4]}周"
+                    current_values[day_index] = course_text
+
+                    # 更新值
+                    tree.item(item_id, values=current_values)
+
+            tree.pack(fill=BOTH, expand=True)
+        except Exception as e:
+            logger.error(f"显示周视图失败: {str(e)}")
+            raise
 
 class DayView:
     def __init__(self, parent, app):
@@ -88,32 +93,38 @@ class DayView:
         for widget in self.frame.winfo_children():
             widget.destroy()
 
-        # 创建日视图内容
-        content = tb.Frame(self.frame)
-        content.pack(fill=BOTH, expand=True, padx=20, pady=20)
+        try:
+            # 创建日视图内容
+            content = tb.Frame(self.frame)
+            content.pack(fill=BOTH, expand=True, padx=20, pady=20)
 
-        tb.Label(content, text="日视图",
-                font=("Helvetica", 24, "bold"),
-                bootstyle=PRIMARY).pack(pady=20)
+            tb.Label(content, text="日视图",
+                    font=("Helvetica", 24, "bold"),
+                    bootstyle=PRIMARY).pack(pady=20)
 
-        # 创建当天的课程列表
-        current_day = datetime.now().weekday() + 1
-        day_courses = [c for c in self.app.course_manager.get_courses_by_day(current_day, self.app.current_week)
-                    if c[11] == self.app.current_semester[0]]  # 添加学期ID过滤
+            # 创建当天的课程列表
+            current_day = datetime.now().weekday() + 1
+            day_courses = [c for c in self.app.course_manager.get_courses_by_day(current_day, self.app.current_week)
+                        if c[11] == self.app.current_semester[0]]
+            
+            logger.info(f"显示当天课程，共 {len(day_courses)} 门")
 
-        if day_courses:
-            for course in day_courses:
-                frame = tb.Frame(content, padding=10)
-                frame.pack(fill=X, pady=5)
+            if day_courses:
+                for course in day_courses:
+                    frame = tb.Frame(content, padding=10)
+                    frame.pack(fill=X, pady=5)
 
-                tb.Label(frame, text=f"{course[1]}",
-                        font=("Helvetica", 14)).pack(side=LEFT)
-                tb.Label(frame, text=f"{course[6]}-{course[7]}",
-                        bootstyle=INFO).pack(side=RIGHT)
-        else:
-            tb.Label(content, text="当天暂无课程",
-                    font=("Helvetica", 14),
-                    bootstyle=SECONDARY).pack(expand=True)
+                    tb.Label(frame, text=f"{course[1]}",
+                            font=("Helvetica", 14)).pack(side=LEFT)
+                    tb.Label(frame, text=f"{course[6]}-{course[7]}",
+                            bootstyle=INFO).pack(side=RIGHT)
+            else:
+                tb.Label(content, text="当天暂无课程",
+                        font=("Helvetica", 14),
+                        bootstyle=SECONDARY).pack(expand=True)
+        except Exception as e:
+            logger.error(f"显示日视图失败: {str(e)}")
+            raise
 
 class MonthView:
     def __init__(self, parent, app):
@@ -132,157 +143,176 @@ class MonthView:
         for widget in self.frame.winfo_children():
             widget.destroy()
 
-        # 创建主容器
-        main_container = tb.Frame(self.frame)
-        main_container.pack(fill=BOTH, expand=True, padx=20, pady=20)
+        try:
+            # 创建主容器
+            main_container = tb.Frame(self.frame)
+            main_container.pack(fill=BOTH, expand=True, padx=20, pady=20)
 
-        # 月份导航
-        nav_frame = tb.Frame(main_container)
-        nav_frame.pack(fill=X, pady=(0, 10))
+            # 月份导航
+            nav_frame = tb.Frame(main_container)
+            nav_frame.pack(fill=X, pady=(0, 10))
 
-        tb.Button(nav_frame, text="◀", width=3,
-                command=self.previous_month).pack(side=LEFT, padx=5)
-        
-        self.month_label = tb.Label(nav_frame, text="",
-                                font=("Helvetica", 16, "bold"))
-        self.month_label.pack(side=LEFT, expand=True)
-        
-        tb.Button(nav_frame, text="▶", width=3,
-                command=self.next_month).pack(side=LEFT, padx=5)
+            tb.Button(nav_frame, text="◀", width=3,
+                    command=self.previous_month).pack(side=LEFT, padx=5)
+            
+            self.month_label = tb.Label(nav_frame, text="",
+                                    font=("Helvetica", 16, "bold"))
+            self.month_label.pack(side=LEFT, expand=True)
+            
+            tb.Button(nav_frame, text="▶", width=3,
+                    command=self.next_month).pack(side=LEFT, padx=5)
 
-        # 统计信息
-        stats_frame = tb.Frame(main_container)
-        stats_frame.pack(fill=X, pady=(0, 10))
-        
-        self.total_courses = tb.Label(stats_frame, text="",
-                                    font=("Helvetica", 12))
-        self.total_courses.pack(side=LEFT, padx=20)
-        
-        self.special_courses = tb.Label(stats_frame, text="",
-                                    font=("Helvetica", 12))
-        self.special_courses.pack(side=LEFT, padx=20)
+            # 统计信息
+            stats_frame = tb.Frame(main_container)
+            stats_frame.pack(fill=X, pady=(0, 10))
+            
+            self.total_courses = tb.Label(stats_frame, text="",
+                                        font=("Helvetica", 12))
+            self.total_courses.pack(side=LEFT, padx=20)
+            
+            self.special_courses = tb.Label(stats_frame, text="",
+                                        font=("Helvetica", 12))
+            self.special_courses.pack(side=LEFT, padx=20)
 
-        # 日历容器
-        calendar_container = tb.Frame(main_container)
-        calendar_container.pack(fill=BOTH, expand=True)
+            # 日历容器
+            calendar_container = tb.Frame(main_container)
+            calendar_container.pack(fill=BOTH, expand=True)
 
-        # 创建日历网格
-        self.calendar_frame = tb.Frame(calendar_container)
-        self.calendar_frame.pack(fill=BOTH, expand=True)
+            # 创建日历网格
+            self.calendar_frame = tb.Frame(calendar_container)
+            self.calendar_frame.pack(fill=BOTH, expand=True)
 
-        # 初始化当前日期
-        self.current_date = datetime.now()
-        self.update_month_view()
+            # 初始化当前日期
+            self.current_date = datetime.now()
+            self.update_month_view()
+        except Exception as e:
+            logger.error(f"显示月视图失败: {str(e)}")
+            raise
 
     def update_month_view(self):
         """更新月份视图"""
-        # 清空日历
-        for widget in self.calendar_frame.winfo_children():
-            widget.destroy()
+        try:
+            # 清空日历
+            for widget in self.calendar_frame.winfo_children():
+                widget.destroy()
 
-        # 更新月份标签
-        year = self.current_date.year
-        month = self.current_date.month
-        self.month_label.config(text=f"{year}年{month}月")
+            # 更新月份标签
+            year = self.current_date.year
+            month = self.current_date.month
+            self.month_label.config(text=f"{year}年{month}月")
 
-        # 添加星期标题
-        week_days = ["一", "二", "三", "四", "五", "六", "日"]
-        for day in week_days:
-            tb.Label(self.calendar_frame, text=day, 
-                    font=("Helvetica", 10, "bold"),
-                    padding=10).grid(row=0, column=week_days.index(day),
-                                sticky="nsew", padx=1, pady=1)
+            # 添加星期标题
+            week_days = ["一", "二", "三", "四", "五", "六", "日"]
+            for day in week_days:
+                tb.Label(self.calendar_frame, text=day, 
+                        font=("Helvetica", 10, "bold"),
+                        padding=10).grid(row=0, column=week_days.index(day),
+                                    sticky="nsew", padx=1, pady=1)
 
-        # 获取月份第一天和最后一天
-        first_day = datetime(year, month, 1)
-        last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
+            # 获取月份第一天和最后一天
+            first_day = datetime(year, month, 1)
+            last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
 
-        # 添加空白格子
-        first_weekday = first_day.weekday()
-        for i in range(first_weekday):
-            tb.Frame(self.calendar_frame, relief="ridge", borderwidth=1).grid(
-                row=1, column=i, sticky="nsew", padx=1, pady=1)
+            # 添加空白格子
+            first_weekday = first_day.weekday()
+            for i in range(first_weekday):
+                tb.Frame(self.calendar_frame, relief="ridge", borderwidth=1).grid(
+                    row=1, column=i, sticky="nsew", padx=1, pady=1)
 
-        # 添加日期格子
-        current_date = first_day
-        week_num = 1
-        while current_date <= last_day:
-            day_frame = tb.Frame(self.calendar_frame, relief="ridge", borderwidth=1)
-            day_frame.grid(row=week_num, column=current_date.weekday(),
-                        sticky="nsew", padx=1, pady=1)
+            # 添加日期格子
+            current_date = first_day
+            week_num = 1
+            month_courses = []
+            
+            while current_date <= last_day:
+                day_frame = tb.Frame(self.calendar_frame, relief="ridge", borderwidth=1)
+                day_frame.grid(row=week_num, column=current_date.weekday(),
+                            sticky="nsew", padx=1, pady=1)
 
-            # 日期标签
-            date_label = tb.Label(day_frame, text=str(current_date.day),
-                                font=("Helvetica", 12, "bold"),
-                                padding=5)
-            date_label.pack(anchor="nw")
+                # 日期标签
+                date_label = tb.Label(day_frame, text=str(current_date.day),
+                                    font=("Helvetica", 12, "bold"),
+                                    padding=5)
+                date_label.pack(anchor="nw")
 
-            # 获取当天的课程
-            day_courses = [c for c in self.app.courses
-                        if c[5] == current_date.weekday() + 1 and 
-                        c[3] <= self.app.current_week <= c[4] and
-                        c[11] == self.app.current_semester[0]]  # 添加学期ID过滤
-
-            # 显示课程
-            if day_courses:
-                course_frame = tb.Frame(day_frame)
-                course_frame.pack(fill=BOTH, expand=True, padx=5, pady=2)
+                # 获取当天的课程
+                day_courses = [c for c in self.app.courses
+                            if c[5] == current_date.weekday() + 1 and 
+                            c[3] <= self.app.current_week <= c[4] and
+                            c[11] == self.app.current_semester[0]]
                 
-                # 最多显示3门课程
-                for i, course in enumerate(day_courses[:3]):
-                    course_label = tb.Label(course_frame, 
-                                        text=course[1][:6],  # 显示课程名前6个字符
-                                        font=("Helvetica", 8),
-                                        bootstyle=course[8])
-                    course_label.pack(fill=X, pady=1)
-                
-                # 如果课程数超过3，显示"+N"
-                if len(day_courses) > 3:
-                    more_label = tb.Label(course_frame,
-                                        text=f"+{len(day_courses)-3}",
-                                        font=("Helvetica", 8),
-                                        bootstyle="info")
-                    more_label.pack(fill=X)
+                month_courses.extend(day_courses)
 
-            # 移动到下一天
-            current_date += timedelta(days=1)
-            if current_date.weekday() == 0:
-                week_num += 1
+                # 显示课程
+                if day_courses:
+                    course_frame = tb.Frame(day_frame)
+                    course_frame.pack(fill=BOTH, expand=True, padx=5, pady=2)
+                    
+                    # 最多显示3门课程
+                    for i, course in enumerate(day_courses[:3]):
+                        course_label = tb.Label(course_frame, 
+                                            text=course[1][:6],  # 显示课程名前6个字符
+                                            font=("Helvetica", 8),
+                                            bootstyle=course[8])
+                        course_label.pack(fill=X, pady=1)
+                    
+                    # 如果课程数超过3，显示"+N"
+                    if len(day_courses) > 3:
+                        more_label = tb.Label(course_frame,
+                                            text=f"+{len(day_courses)-3}",
+                                            font=("Helvetica", 8),
+                                            bootstyle="info")
+                        more_label.pack(fill=X)
 
-        # 配置网格权重
-        for i in range(7):
-            self.calendar_frame.columnconfigure(i, weight=1)
-        for i in range(week_num + 1):
-            self.calendar_frame.rowconfigure(i, weight=1)
+                # 移动到下一天
+                current_date += timedelta(days=1)
+                if current_date.weekday() == 0:
+                    week_num += 1
 
-        # 更新统计信息
-        self.update_stats()
+            # 配置网格权重
+            for i in range(7):
+                self.calendar_frame.columnconfigure(i, weight=1)
+            for i in range(week_num + 1):
+                self.calendar_frame.rowconfigure(i, weight=1)
+
+            # 更新统计信息
+            self.update_stats(month_courses)
+            
+            logger.info(f"更新月视图完成，{year}年{month}月共 {len(month_courses)} 门课程")
+        except Exception as e:
+            logger.error(f"更新月视图失败: {str(e)}")
+            raise
 
     def previous_month(self):
         """切换到上个月"""
-        if self.current_date.month == 1:
-            self.current_date = datetime(self.current_date.year - 1, 12, 1)
-        else:
-            self.current_date = datetime(self.current_date.year, self.current_date.month - 1, 1)
-        self.update_month_view()
+        try:
+            if self.current_date.month == 1:
+                self.current_date = datetime(self.current_date.year - 1, 12, 1)
+            else:
+                self.current_date = datetime(self.current_date.year, self.current_date.month - 1, 1)
+            self.update_month_view()
+        except Exception as e:
+            logger.error(f"切换上个月失败: {str(e)}")
 
     def next_month(self):
         """切换到下个月"""
-        if self.current_date.month == 12:
-            self.current_date = datetime(self.current_date.year + 1, 1, 1)
-        else:
-            self.current_date = datetime(self.current_date.year, self.current_date.month + 1, 1)
-        self.update_month_view()
+        try:
+            if self.current_date.month == 12:
+                self.current_date = datetime(self.current_date.year + 1, 1, 1)
+            else:
+                self.current_date = datetime(self.current_date.year, self.current_date.month + 1, 1)
+            self.update_month_view()
+        except Exception as e:
+            logger.error(f"切换下个月失败: {str(e)}")
 
-    def update_stats(self):
+    def update_stats(self, month_courses):
         """更新统计信息"""
-        # 计算当前月份的课程总数
-        month_courses = [c for c in self.app.courses
-                    if c[3] <= self.app.current_week <= c[4]]
-        
-        # 计算特殊课程数
-        special_count = len([c for c in month_courses if c[10] == 1])
-        
-        # 更新统计标签
-        self.total_courses.config(text=f"总课程数: {len(month_courses)}")
-        self.special_courses.config(text=f"特殊课程: {special_count}")
+        try:
+            # 计算特殊课程数
+            special_count = len([c for c in month_courses if c[10] == 1])
+            
+            # 更新统计标签
+            self.total_courses.config(text=f"总课程数: {len(month_courses)}")
+            self.special_courses.config(text=f"特殊课程: {special_count}")
+        except Exception as e:
+            logger.error(f"更新统计信息失败: {str(e)}")
