@@ -13,17 +13,26 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("500x700")
+        self.dialog.geometry("500x650")
+        self.dialog.resizable(False, False)
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
 
         # 创建主容器
-        main_container = tb.Frame(self.dialog)
-        main_container.pack(fill=BOTH, expand=True, padx=20, pady=20)
+        main_frame = tb.Frame(self.dialog, padding=20)
+        main_frame.pack(fill=BOTH, expand=True)
 
         # 创建滚动区域
-        canvas = tb.Canvas(main_container)
-        scrollbar = tb.Scrollbar(main_container, orient="vertical", command=canvas.yview)
+        self.create_scrollable_form(main_frame)
+
+        # 按钮区域
+        self.create_button_area(main_frame)
+
+    def create_scrollable_form(self, parent):
+        """创建可滚动的表单区域"""
+        # 创建画布和滚动条
+        canvas = tb.Canvas(parent, height=500)
+        scrollbar = tb.Scrollbar(parent, orient="vertical", command=canvas.yview)
         scrollable_frame = tb.Frame(canvas)
 
         scrollable_frame.bind(
@@ -37,189 +46,265 @@ class AddCourseDialog:
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # 创建表单容器
-        form_frame = tb.Frame(scrollable_frame)
-        form_frame.pack(fill=BOTH, expand=True, padx=20, pady=10)
+        # 创建表单内容
+        self.create_form_content(scrollable_frame)
 
-        # 标题
-        title_label = tb.Label(form_frame, text="添加新课程",
-                             font=("Helvetica", 16, "bold"),
-                             bootstyle=PRIMARY)
-        title_label.pack(pady=(0, 20))
+    def create_form_content(self, parent):
+        """创建表单内容"""
+        # 基本信息
+        self.create_basic_info_section(parent)
+        
+        # 时间设置
+        self.create_time_section(parent)
+        
+        # 课程类型和颜色
+        self.create_type_color_section(parent)
+        
+        # 周数设置
+        self.create_week_section(parent)
+        
+        # 星期设置
+        self.create_day_section(parent)
 
-        # 创建表单字段
-        self.create_form_fields(form_frame)
-
-        # 按钮区域
-        btn_frame = tb.Frame(form_frame)
-        btn_frame.pack(fill=X, pady=(20, 10))
-
-        tb.Button(btn_frame, text="取消", command=self.dialog.destroy,
-                 bootstyle=(SECONDARY, OUTLINE)).pack(side=RIGHT, padx=5)
-        tb.Button(btn_frame, text="保存", command=self.save_course,
-                 bootstyle=(SUCCESS, OUTLINE)).pack(side=RIGHT, padx=5)
-
-    def create_form_fields(self, parent):
-        """创建表单字段"""
-        # 创建主容器
-        main_container = tb.Frame(parent)
-        main_container.pack(fill=BOTH, expand=True)
-
-        # 使用网格布局创建表单
-        grid_frame = tb.Frame(main_container)
-        grid_frame.pack(fill=BOTH, expand=True, padx=15, pady=10)
-
-        # 基本信息框架
-        basic_frame = tb.LabelFrame(grid_frame, text="基本信息", padding=10)
-        basic_frame.grid(row=0, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+    def create_basic_info_section(self, parent):
+        """创建基本信息部分"""
+        section_frame = tb.LabelFrame(parent, text="基本信息", padding=15)
+        section_frame.pack(fill=X, pady=(0, 10))
 
         # 课程名称
-        tb.Label(basic_frame, text="课程名称:", width=12).grid(row=0, column=0, sticky="e", padx=5, pady=8)
-        self.name_entry = tb.Entry(basic_frame, font=("Helvetica", 11))
-        self.name_entry.grid(row=0, column=1, sticky="ew", padx=5, pady=8)
+        name_frame = tb.Frame(section_frame)
+        name_frame.pack(fill=X, pady=5)
+        tb.Label(name_frame, text="课程名称:", width=10).pack(side=LEFT)
+        self.name_entry = tb.Entry(name_frame, font=("Helvetica", 11))
+        self.name_entry.pack(side=LEFT, fill=X, expand=True, padx=(10, 0))
 
         # 任课老师
-        tb.Label(basic_frame, text="任课老师:", width=12).grid(row=1, column=0, sticky="e", padx=5, pady=5)
-        self.teacher_entry = tb.Entry(basic_frame, font=("Helvetica", 11))
-        self.teacher_entry.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
+        teacher_frame = tb.Frame(section_frame)
+        teacher_frame.pack(fill=X, pady=5)
+        tb.Label(teacher_frame, text="任课老师:", width=10).pack(side=LEFT)
+        self.teacher_entry = tb.Entry(teacher_frame, font=("Helvetica", 11))
+        self.teacher_entry.pack(side=LEFT, fill=X, expand=True, padx=(10, 0))
 
         # 上课地点
-        tb.Label(basic_frame, text="上课地点:", width=12).grid(row=2, column=0, sticky="e", padx=5, pady=5)
-        self.location_entry = tb.Entry(basic_frame, font=("Helvetica", 11))
-        self.location_entry.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
+        location_frame = tb.Frame(section_frame)
+        location_frame.pack(fill=X, pady=5)
+        tb.Label(location_frame, text="上课地点:", width=10).pack(side=LEFT)
+        self.location_entry = tb.Entry(location_frame, font=("Helvetica", 11))
+        self.location_entry.pack(side=LEFT, fill=X, expand=True, padx=(10, 0))
 
-        # 时间选择框架
-        time_frame = tb.LabelFrame(grid_frame, text="上课时间", padding=10)
-        time_frame.grid(row=1, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+    def create_time_section(self, parent):
+        """创建时间选择部分"""
+        section_frame = tb.LabelFrame(parent, text="上课时间", padding=15)
+        section_frame.pack(fill=X, pady=(0, 10))
 
-        # 时间段可视化显示
-        self.time_preview = tb.Label(time_frame, text="", font=("Helvetica", 10))
-        self.time_preview.pack(fill="x", pady=(0, 10))
+        # 时间预览
+        self.time_preview = tb.Label(section_frame, text="请选择时间段", 
+                                   font=("Helvetica", 10), bootstyle=INFO)
+        self.time_preview.pack(fill=X, pady=(0, 10))
 
-        # 时间选择下拉框
-        time_inner = tb.Frame(time_frame)
-        time_inner.pack(fill="x")
-
-        self.start_time = tb.Combobox(time_inner, 
+        # 时间选择
+        time_select_frame = tb.Frame(section_frame)
+        time_select_frame.pack(fill=X)
+        
+        tb.Label(time_select_frame, text="时间段:").pack(side=LEFT)
+        self.start_time = tb.Combobox(time_select_frame, 
                                     values=[f"{start}-{end}" for start, end in self.app.time_slots],
-                                    state="readonly", font=("Helvetica", 11))
-        self.start_time.pack(side=LEFT, padx=5)
+                                    state="readonly", 
+                                    font=("Helvetica", 11),
+                                    width=15)
+        self.start_time.pack(side=LEFT, padx=(10, 0))
         self.start_time.bind("<<ComboboxSelected>>", self.update_time_preview)
 
-        # 课程类型和颜色框架
-        type_color_frame = tb.LabelFrame(grid_frame, text="课程类型和颜色", padding=10)
-        type_color_frame.grid(row=2, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+    def create_type_color_section(self, parent):
+        """创建类型和颜色选择部分"""
+        section_frame = tb.LabelFrame(parent, text="课程样式", padding=15)
+        section_frame.pack(fill=X, pady=(0, 10))
 
         # 类型选择
-        type_inner = tb.Frame(type_color_frame)
-        type_inner.pack(fill="x", pady=(0, 10))
-
+        type_frame = tb.Frame(section_frame)
+        type_frame.pack(fill=X, pady=(0, 10))
+        
+        tb.Label(type_frame, text="课程类型:").pack(side=LEFT)
+        
+        type_btn_frame = tb.Frame(type_frame)
+        type_btn_frame.pack(side=LEFT, padx=(10, 0))
+        
         self.type_var = tb.StringVar(value="正常")
-        tb.Radiobutton(type_inner, text="正常", variable=self.type_var, value="正常",
-                      command=self.update_type_preview).pack(side=LEFT, padx=10)
-        tb.Radiobutton(type_inner, text="调休", variable=self.type_var, value="调休",
-                      command=self.update_type_preview).pack(side=LEFT, padx=10)
+        tb.Radiobutton(type_btn_frame, text="正常课程", variable=self.type_var, 
+                      value="正常", command=self.update_type_preview).pack(side=LEFT, padx=(0, 15))
+        tb.Radiobutton(type_btn_frame, text="调休课程", variable=self.type_var, 
+                      value="调休", command=self.update_type_preview).pack(side=LEFT)
 
         # 类型预览
-        self.type_preview = tb.Label(type_color_frame, text="", font=("Helvetica", 10))
-        self.type_preview.pack()
+        self.type_preview = tb.Label(section_frame, text="普通课程", 
+                                   font=("Helvetica", 9), bootstyle=SECONDARY)
+        self.type_preview.pack(fill=X, pady=(0, 10))
 
         # 颜色选择
-        color_frame = tb.Frame(type_color_frame)
-        color_frame.pack(fill="x", pady=(10, 0))
-
-        tb.Label(color_frame, text="选择颜色:", width=12).pack(side=LEFT, padx=5)
-        colors = ["primary", "secondary", "success", "danger", "warning", "info", "light", "dark"]
-        self.color_var = tb.StringVar(value=colors[0])
-
-        # 创建颜色选择按钮组
+        color_frame = tb.Frame(section_frame)
+        color_frame.pack(fill=X)
+        
+        tb.Label(color_frame, text="课程颜色:").pack(side=LEFT)
+        
         color_btn_frame = tb.Frame(color_frame)
-        color_btn_frame.pack(side=LEFT, fill="x", expand=True)
-
-        for color in colors:
-            btn = tb.Button(color_btn_frame, text="●", bootstyle=color, width=3)
+        color_btn_frame.pack(side=LEFT, padx=(10, 0))
+        
+        colors = [
+            ("primary", "蓝色"), ("success", "绿色"), ("warning", "黄色"),
+            ("danger", "红色"), ("info", "青色"), ("secondary", "灰色")
+        ]
+        self.color_var = tb.StringVar(value=colors[0][0])
+        
+        for color, name in colors:
+            btn = tb.Button(color_btn_frame, text=name, bootstyle=color, 
+                          command=lambda c=color: self.on_color_select(c),
+                          width=6)
             btn.pack(side=LEFT, padx=2)
-            btn.bind("<Button-1>", lambda e, c=color: self.on_color_select(c))
 
-        # 周数范围框架
-        week_frame = tb.LabelFrame(grid_frame, text="周数范围", padding=10)
-        week_frame.grid(row=3, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+    def create_week_section(self, parent):
+        """创建周数设置部分"""
+        section_frame = tb.LabelFrame(parent, text="周数范围", padding=15)
+        section_frame.pack(fill=X, pady=(0, 10))
 
-        week_inner = tb.Frame(week_frame)
-        week_inner.pack(fill="x")
+        week_frame = tb.Frame(section_frame)
+        week_frame.pack(fill=X)
+        
+        tb.Label(week_frame, text="周数:").pack(side=LEFT)
+        
+        week_input_frame = tb.Frame(week_frame)
+        week_input_frame.pack(side=LEFT, padx=(10, 0))
+        
+        self.start_week = tb.Spinbox(week_input_frame, from_=1, to=20, 
+                                   width=5, font=("Helvetica", 11))
+        self.start_week.set(1)
+        self.start_week.pack(side=LEFT)
+        
+        tb.Label(week_input_frame, text=" 至 ").pack(side=LEFT)
+        
+        self.end_week = tb.Spinbox(week_input_frame, from_=1, to=20, 
+                                 width=5, font=("Helvetica", 11))
+        self.end_week.set(16)
+        self.end_week.pack(side=LEFT)
+        
+        tb.Label(week_input_frame, text=" 周").pack(side=LEFT)
 
-        tb.Label(week_inner, text="第").pack(side=LEFT)
-        self.start_week = tb.Spinbox(week_inner, from_=1, to=20, width=5, font=("Helvetica", 11))
-        self.start_week.pack(side=LEFT, padx=2)
-        tb.Label(week_inner, text="至").pack(side=LEFT, padx=2)
-        self.end_week = tb.Spinbox(week_inner, from_=1, to=20, width=5, font=("Helvetica", 11))
-        self.end_week.pack(side=LEFT, padx=2)
-        tb.Label(week_inner, text="周").pack(side=LEFT)
+    def create_day_section(self, parent):
+        """创建星期选择部分"""
+        section_frame = tb.LabelFrame(parent, text="上课星期", padding=15)
+        section_frame.pack(fill=X, pady=(0, 10))
 
-        # 星期几选择框架
-        day_frame = tb.LabelFrame(grid_frame, text="上课星期", padding=10)
-        day_frame.grid(row=4, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
-
-        day_inner = tb.Frame(day_frame)
-        day_inner.pack(fill="x")
-
+        day_frame = tb.Frame(section_frame)
+        day_frame.pack(fill=X)
+        
         self.day_var = tb.IntVar(value=1)
-        for i in range(7):
-            day_btn = tb.Radiobutton(day_inner, 
-                                   text=self.app.days_of_week[i],
-                                   variable=self.day_var, 
-                                   value=i + 1)
-            day_btn.pack(side=LEFT, padx=5)
+        
+        # 创建两行按钮布局
+        row1_frame = tb.Frame(day_frame)
+        row1_frame.pack(fill=X, pady=2)
+        row2_frame = tb.Frame(day_frame)
+        row2_frame.pack(fill=X, pady=2)
+        
+        days_config = [
+            (row1_frame, 1, "周一"), (row1_frame, 2, "周二"), (row1_frame, 3, "周三"),
+            (row1_frame, 4, "周四"), (row2_frame, 5, "周五"), (row2_frame, 6, "周六"),
+            (row2_frame, 7, "周日")
+        ]
+        
+        for frame, value, text in days_config:
+            tb.Radiobutton(frame, text=text, variable=self.day_var, 
+                         value=value, width=6).pack(side=LEFT, padx=2)
 
-        # 配置网格权重
-        grid_frame.columnconfigure(1, weight=1)
+    def create_button_area(self, parent):
+        """创建按钮区域"""
+        btn_frame = tb.Frame(parent)
+        btn_frame.pack(fill=X, pady=(20, 0))
+
+        # 添加一些间距和分隔线
+        separator = tb.Separator(btn_frame, orient=HORIZONTAL)
+        separator.pack(fill=X, pady=(0, 15))
+
+        btn_inner_frame = tb.Frame(btn_frame)
+        btn_inner_frame.pack(fill=X)
+
+        tb.Button(btn_inner_frame, text="取消", command=self.dialog.destroy,
+                 bootstyle=(SECONDARY, OUTLINE), width=10).pack(side=RIGHT, padx=5)
+        tb.Button(btn_inner_frame, text="保存课程", command=self.save_course,
+                 bootstyle=SUCCESS, width=10).pack(side=RIGHT, padx=5)
 
     def update_time_preview(self, event=None):
         """更新时间预览"""
         time_index = self.start_time.current()
         if time_index >= 0:
             start_time, end_time = self.app.time_slots[time_index]
-            self.time_preview.config(text=f"上课时间: {start_time} - {end_time}")
+            preview_text = f"上课时间: {start_time} - {end_time}"
+            self.time_preview.config(text=preview_text, bootstyle=SUCCESS)
 
     def update_type_preview(self):
         """更新类型预览"""
         course_type = self.type_var.get()
-        preview_text = "普通课程" if course_type == "正常" else "特殊课程（可能需要特殊安排）"
-        self.type_preview.config(text=preview_text)
+        if course_type == "正常":
+            preview_text = "普通课程 - 按正常课表安排"
+            style = SUCCESS
+        else:
+            preview_text = "调休课程 - 特殊时间安排，可能需要调整"
+            style = WARNING
+        
+        self.type_preview.config(text=preview_text, bootstyle=style)
 
     def on_color_select(self, color):
         """处理颜色选择"""
         self.color_var.set(color)
 
-    def save_course(self):
-        """保存课程"""
+    def validate_inputs(self):
+        """验证所有输入字段"""
+        errors = []
+        
+        # 验证必填字段
+        if not self.name_entry.get().strip():
+            errors.append("请输入课程名称")
+        if not self.teacher_entry.get().strip():
+            errors.append("请输入任课老师")
+        if not self.location_entry.get().strip():
+            errors.append("请输入上课地点")
+            
+        # 验证时间选择
+        time_index = self.start_time.current()
+        if time_index < 0:
+            errors.append("请选择上课时间段")
+            
+        # 验证周数范围
         try:
-            # 验证必填字段
-            if not self.name_entry.get().strip():
-                raise ValueError("请输入课程名称")
-            if not self.teacher_entry.get().strip():
-                raise ValueError("请输入任课老师")
-            if not self.location_entry.get().strip():
-                raise ValueError("请输入上课地点")
-
-            # 验证周数范围
             start_week = int(self.start_week.get())
             end_week = int(self.end_week.get())
+            if start_week < 1 or end_week > 20:
+                errors.append("周数范围应在1-20周之间")
             if start_week > end_week:
-                raise ValueError("起始周不能大于结束周")
+                errors.append("起始周不能大于结束周")
+        except ValueError:
+            errors.append("周数必须是有效的数字")
+            
+        return errors
 
+    def save_course(self):
+        """保存课程信息"""
+        # 验证输入
+        errors = self.validate_inputs()
+        if errors:
+            messagebox.showerror("输入错误", "\n".join(errors))
+            return
+            
+        try:
             # 获取时间选择
             time_index = self.start_time.current()
-            if time_index < 0:
-                raise ValueError("请选择上课时间")
             start_time, end_time = self.app.time_slots[time_index]
-
+            
+            # 准备课程数据
             course_data = (
                 self.name_entry.get().strip(),
                 self.teacher_entry.get().strip(),
                 self.location_entry.get().strip(),
-                start_week,
-                end_week,
+                int(self.start_week.get()),
+                int(self.end_week.get()),
                 self.day_var.get(),
                 start_time,
                 end_time,
@@ -229,14 +314,17 @@ class AddCourseDialog:
                 self.app.current_semester[0]  # 学期ID
             )
 
+            # 保存到数据库
             self.app.course_manager.add_course(course_data)
+            
+            # 更新界面
             self.app.load_courses()
             self.app.update_display()
+            
+            # 关闭对话框并提示成功
             self.dialog.destroy()
             messagebox.showinfo("成功", "课程添加成功！")
 
-        except ValueError as ve:
-            messagebox.showerror("输入错误", str(ve))
         except Exception as e:
             messagebox.showerror("错误", f"添加课程失败: {str(e)}")
 
