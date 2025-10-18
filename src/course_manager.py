@@ -138,7 +138,7 @@ class CourseManager:
         """获取所有课程"""
         conn = sqlite3.connect('courses.db')
         cursor = conn.cursor()
-        cursor.execute('SELECT * FROM courses ORDER BY day_of_week, start_time')
+        cursor.execute('SELECT * FROM courses ORDER BY semester_id, day_of_week, start_time')
         courses = cursor.fetchall()
         conn.close()
         # 过滤掉无效数据

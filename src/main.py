@@ -96,6 +96,8 @@ class ModernCourseScheduleApp:
     def load_courses(self):
         """加载课程数据"""
         self.courses = self.course_manager.get_courses()
+        # 过滤当前学期的课程
+        self.courses = [c for c in self.courses if c[11] == self.current_semester[0]]
 
     def update_display(self):
         """更新显示"""
@@ -120,6 +122,7 @@ class ModernCourseScheduleApp:
     def on_week_change(self):
         """周数改变事件"""
         self.current_week = self.top_bar.week_var.get()
+        self.load_courses()
         self.update_display()
 
     def switch_view(self, view):
