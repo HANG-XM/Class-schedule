@@ -13,55 +13,60 @@ class AddCourseDialog:
         """创建新建学期对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("新建学期")
-        self.dialog.geometry("400x1000")
+        self.dialog.geometry("500x400")  # 增加窗口尺寸
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
 
-        main_frame = tb.Frame(self.dialog, padding=20)
+        main_frame = tb.Frame(self.dialog, padding=30)  # 增加内边距
         main_frame.pack(fill=BOTH, expand=True)
 
         # 学期类型选择
-        tb.Label(main_frame, text="学期类型:", font=("Helvetica", 10)).pack(anchor="w", pady=5)
+        tb.Label(main_frame, text="学期类型:", font=("Helvetica", 12)).pack(anchor="w", pady=(10, 5))
         self.semester_type = tb.Combobox(main_frame, 
                                     values=["秋季", "春季"],
-                                    state="readonly")
-        self.semester_type.pack(fill="x", pady=5)
+                                    state="readonly",
+                                    font=("Helvetica", 11))  # 增大字体
+        self.semester_type.pack(fill="x", pady=(0, 15))
         self.semester_type.set("秋季")
         self.semester_type.bind('<<ComboboxSelected>>', lambda e: self.update_semester_name())
 
         # 学期名称
-        tb.Label(main_frame, text="学期名称:", font=("Helvetica", 10)).pack(anchor="w", pady=5)
-        self.name_entry = tb.Entry(main_frame)
-        self.name_entry.pack(fill="x", pady=5)
+        tb.Label(main_frame, text="学期名称:", font=("Helvetica", 12)).pack(anchor="w", pady=(10, 5))
+        self.name_entry = tb.Entry(main_frame, font=("Helvetica", 11))  # 增大字体
+        self.name_entry.pack(fill="x", pady=(0, 15))
         self.name_entry.insert(0, self.generate_semester_name())
         self.name_entry.config(state="readonly")
 
         # 日期选择框架
         date_frame = tb.Frame(main_frame)
-        date_frame.pack(fill="x", pady=10)
+        date_frame.pack(fill="x", pady=20)  # 增加上下间距
 
         # 开始日期
         start_frame = tb.Frame(date_frame)
-        start_frame.pack(fill="x", pady=5)
-        tb.Label(start_frame, text="开始日期:", font=("Helvetica", 10)).pack(side=LEFT)
-        self.start_date = tb.DateEntry(start_frame, bootstyle="primary", dateformat="%Y-%m-%d")
-        self.start_date.pack(side=LEFT, padx=5)
+        start_frame.pack(fill="x", pady=(0, 15))
+        tb.Label(start_frame, text="开始日期:", font=("Helvetica", 12)).pack(side=LEFT)
+        self.start_date = tb.DateEntry(start_frame, bootstyle="primary", 
+                                    dateformat="%Y-%m-%d",
+                                    font=("Helvetica", 11))  # 增大字体
+        self.start_date.pack(side=LEFT, padx=10)
 
         # 结束日期
         end_frame = tb.Frame(date_frame)
-        end_frame.pack(fill="x", pady=5)
-        tb.Label(end_frame, text="结束日期:", font=("Helvetica", 10)).pack(side=LEFT)
-        self.end_date = tb.DateEntry(end_frame, bootstyle="primary", dateformat="%Y-%m-%d")
-        self.end_date.pack(side=LEFT, padx=5)
+        end_frame.pack(fill="x", pady=(0, 15))
+        tb.Label(end_frame, text="结束日期:", font=("Helvetica", 12)).pack(side=LEFT)
+        self.end_date = tb.DateEntry(end_frame, bootstyle="primary",
+                                dateformat="%Y-%m-%d",
+                                font=("Helvetica", 11))  # 增大字体
+        self.end_date.pack(side=LEFT, padx=10)
 
         # 按钮
         btn_frame = tb.Frame(main_frame)
-        btn_frame.pack(fill="x", pady=10)
+        btn_frame.pack(fill="x", pady=30)  # 增加上下间距
         
         tb.Button(btn_frame, text="取消", command=self.dialog.destroy,
-                bootstyle=(SECONDARY, OUTLINE)).pack(side="right", padx=5)
+                bootstyle=(SECONDARY, OUTLINE), width=10).pack(side="right", padx=5)
         tb.Button(btn_frame, text="保存", command=self.save_semester,
-                bootstyle=(SUCCESS, OUTLINE)).pack(side="right", padx=5)
+                bootstyle=(SUCCESS, OUTLINE), width=10).pack(side="right", padx=5)
 
     def create_form_fields(self, parent):
         """创建表单字段"""
