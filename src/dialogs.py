@@ -13,7 +13,7 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("400x500")
+        self.dialog.geometry("450x600")
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
 
@@ -23,7 +23,7 @@ class AddCourseDialog:
 
         # 创建表单容器
         form_frame = tb.Frame(main_container)
-        form_frame.pack(fill=BOTH, expand=True)
+        form_frame.pack(fill=BOTH, expand=True, padx=20, pady=10)  # 增加左右内边距
 
         # 标题
         title_label = tb.Label(form_frame, text="添加新课程",
@@ -36,7 +36,7 @@ class AddCourseDialog:
 
         # 按钮区域
         btn_frame = tb.Frame(form_frame)
-        btn_frame.pack(fill=X, pady=10)
+        btn_frame.pack(fill=X, pady=(20, 10))  # 增加上边距
 
         tb.Button(btn_frame, text="取消", command=self.dialog.destroy,
                  bootstyle=(SECONDARY, OUTLINE)).pack(side=RIGHT, padx=5)
@@ -51,29 +51,23 @@ class AddCourseDialog:
 
         # 使用网格布局创建表单
         grid_frame = tb.Frame(main_container)
-        grid_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
+        grid_frame.pack(fill=BOTH, expand=True, padx=15, pady=10)  # 增加内边距
 
         # 左侧字段
         # 课程名称
-        tb.Label(grid_frame, text="课程名称:", width=12).grid(row=0, column=0, sticky="e", padx=5, pady=5)
+        tb.Label(grid_frame, text="课程名称:", width=12).grid(row=0, column=0, sticky="e", padx=5, pady=8)
         self.name_entry = tb.Entry(grid_frame)
-        self.name_entry.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
-        tb.Label(grid_frame, text="例：高等数学", font=("Helvetica", 9), 
-                foreground="gray").grid(row=0, column=2, sticky="w", padx=5)
+        self.name_entry.grid(row=0, column=1, sticky="ew", padx=5, pady=8)
 
         # 任课老师
         tb.Label(grid_frame, text="任课老师:", width=12).grid(row=1, column=0, sticky="e", padx=5, pady=5)
         self.teacher_entry = tb.Entry(grid_frame)
         self.teacher_entry.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
-        tb.Label(grid_frame, text="例：张老师", font=("Helvetica", 9), 
-                foreground="gray").grid(row=1, column=2, sticky="w", padx=5)
 
         # 上课地点
         tb.Label(grid_frame, text="上课地点:", width=12).grid(row=2, column=0, sticky="e", padx=5, pady=5)
         self.location_entry = tb.Entry(grid_frame)
         self.location_entry.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
-        tb.Label(grid_frame, text="例：教学楼A101", font=("Helvetica", 9), 
-                foreground="gray").grid(row=2, column=2, sticky="w", padx=5)
 
         # 时间选择部分修改
         time_frame = tb.Frame(grid_frame)
