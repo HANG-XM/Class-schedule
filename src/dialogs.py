@@ -93,7 +93,7 @@ class AddCourseDialog:
         time_frame.grid(row=1, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
 
         # 时间段可视化显示
-        self.time_preview = tb.Frame(time_frame)
+        self.time_preview = tb.Label(time_frame, text="", font=("Helvetica", 10))
         self.time_preview.pack(fill="x", pady=(0, 10))
 
         # 时间选择下拉框
