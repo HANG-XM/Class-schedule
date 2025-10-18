@@ -17,8 +17,6 @@ class ModernCourseScheduleApp:
         self.root.minsize(1200, 800)
 
         self.course_manager = CourseManager()
-        self.current_week = self.get_current_week()
-        self.top_bar.week_var.set(self.current_week)
         self.current_view = "week"  # week, day, month
         self.current_theme = "flatly"
 
@@ -36,7 +34,13 @@ class ModernCourseScheduleApp:
         # 初始化courses属性
         self.courses = []
 
+        # 先创建UI，再设置周数
         self.setup_ui()
+        
+        # 设置当前周数
+        self.current_week = self.get_current_week()
+        self.top_bar.week_var.set(self.current_week)
+        
         self.load_courses()
         self.update_display()
 
