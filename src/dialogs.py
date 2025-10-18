@@ -51,86 +51,106 @@ class AddCourseDialog:
 
         # 使用网格布局创建表单
         grid_frame = tb.Frame(main_container)
-        grid_frame.pack(fill=BOTH, expand=True)
+        grid_frame.pack(fill=BOTH, expand=True, padx=10, pady=10)
 
         # 左侧字段
         # 课程名称
         tb.Label(grid_frame, text="课程名称:", width=12).grid(row=0, column=0, sticky="e", padx=5, pady=5)
         self.name_entry = tb.Entry(grid_frame)
         self.name_entry.grid(row=0, column=1, sticky="ew", padx=5, pady=5)
+        tb.Label(grid_frame, text="例：高等数学", font=("Helvetica", 9), 
+                foreground="gray").grid(row=0, column=2, sticky="w", padx=5)
 
         # 任课老师
         tb.Label(grid_frame, text="任课老师:", width=12).grid(row=1, column=0, sticky="e", padx=5, pady=5)
         self.teacher_entry = tb.Entry(grid_frame)
         self.teacher_entry.grid(row=1, column=1, sticky="ew", padx=5, pady=5)
+        tb.Label(grid_frame, text="例：张老师", font=("Helvetica", 9), 
+                foreground="gray").grid(row=1, column=2, sticky="w", padx=5)
 
         # 上课地点
         tb.Label(grid_frame, text="上课地点:", width=12).grid(row=2, column=0, sticky="e", padx=5, pady=5)
         self.location_entry = tb.Entry(grid_frame)
         self.location_entry.grid(row=2, column=1, sticky="ew", padx=5, pady=5)
+        tb.Label(grid_frame, text="例：教学楼A101", font=("Helvetica", 9), 
+                foreground="gray").grid(row=2, column=2, sticky="w", padx=5)
 
-        # 右侧字段
-        # 周数范围
-        week_frame = tb.Frame(grid_frame)
-        week_frame.grid(row=0, column=2, rowspan=3, padx=20, pady=5, sticky="n")
-
-        tb.Label(week_frame, text="周数范围", font=("Helvetica", 10, "bold")).pack(pady=(0, 5))
-        week_inner = tb.Frame(week_frame)
-        week_inner.pack()
-
-        self.start_week = tb.Spinbox(week_inner, from_=1, to=20, width=8)
-        self.start_week.pack(side=LEFT, padx=2)
-        tb.Label(week_inner, text="至").pack(side=LEFT, padx=2)
-        self.end_week = tb.Spinbox(week_inner, from_=1, to=20, width=8)
-        self.end_week.pack(side=LEFT, padx=2)
-
-        # 星期几
-        day_frame = tb.Frame(grid_frame)
-        day_frame.grid(row=0, column=3, rowspan=3, padx=20, pady=5, sticky="n")
-
-        tb.Label(day_frame, text="上课星期", font=("Helvetica", 10, "bold")).pack(pady=(0, 5))
-        self.day_var = tb.IntVar(value=1)
-        for i in range(0, 7):
-            day_btn = tb.Radiobutton(day_frame, 
-                                text=self.app.days_of_week[i],
-                                variable=self.day_var, 
-                                value=i + 1)
-            day_btn.pack(anchor="w", pady=2)
-
-        # 时间选择
+        # 时间选择部分修改
         time_frame = tb.Frame(grid_frame)
-        time_frame.grid(row=3, column=0, columnspan=2, sticky="ew", padx=5, pady=5)
+        time_frame.grid(row=3, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
 
         tb.Label(time_frame, text="上课时间", font=("Helvetica", 10, "bold")).pack(anchor="w", pady=(0, 5))
-        self.time_combo = tb.Combobox(time_frame,
-                                    values=[f"第{i+1}节 {start}-{end}"
-                                        for i, (start, end) in enumerate(self.app.time_slots)],
-                                    state="readonly")
-        self.time_combo.current(0)
-        self.time_combo.pack(fill="x")
+        time_inner = tb.Frame(time_frame)
+        time_inner.pack(fill="x")
 
-        # 课程类型和颜色
+        self.start_time = tb.Combobox(time_inner, 
+                                    values=[f"{start}-{end}" for start, end in self.app.time_slots],
+                                    state="readonly")
+        self.start_time.pack(side=LEFT, padx=2)
+        self.start_time.current(0)
+
+        # 课程类型和颜色部分修改
         type_color_frame = tb.Frame(grid_frame)
-        type_color_frame.grid(row=3, column=2, columnspan=2, sticky="ew", padx=5, pady=5)
+        type_color_frame.grid(row=4, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
 
         # 课程类型
         type_frame = tb.Frame(type_color_frame)
-        type_frame.pack(side=LEFT, fill="x", expand=True, padx=(0, 10))
+        type_frame.pack(side=LEFT, fill="x", expand=True)
 
         tb.Label(type_frame, text="课程类型", font=("Helvetica", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        type_inner = tb.Frame(type_frame)
+        type_inner.pack(fill="x")
+
         self.type_var = tb.StringVar(value="正常")
-        tb.Radiobutton(type_frame, text="正常", variable=self.type_var, value="正常").pack(anchor="w")
-        tb.Radiobutton(type_frame, text="调休", variable=self.type_var, value="调休").pack(anchor="w")
+        tb.Radiobutton(type_inner, text="正常", variable=self.type_var, value="正常").pack(side=LEFT, padx=5)
+        tb.Radiobutton(type_inner, text="调休", variable=self.type_var, value="调休").pack(side=LEFT, padx=5)
 
         # 颜色选择
         color_frame = tb.Frame(type_color_frame)
         color_frame.pack(side=LEFT, fill="x", expand=True)
 
         tb.Label(color_frame, text="颜色标记", font=("Helvetica", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        color_inner = tb.Frame(color_frame)
+        color_inner.pack(fill="x")
+
         colors = ["primary", "secondary", "success", "danger", "warning", "info", "light", "dark"]
         self.color_var = tb.StringVar(value=colors[0])
-        color_combo = tb.Combobox(color_frame, values=colors, textvariable=self.color_var, state="readonly")
-        color_combo.pack(fill="x")
+        for color in colors:
+            btn = tb.Button(color_inner, text="●", bootstyle=color, width=3)
+            btn.pack(side=LEFT, padx=2)
+            btn.bind("<Button-1>", lambda e, c=color: self.color_var.set(c))
+
+        # 周数范围部分修改
+        week_frame = tb.Frame(grid_frame)
+        week_frame.grid(row=5, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
+
+        tb.Label(week_frame, text="周数范围", font=("Helvetica", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        week_inner = tb.Frame(week_frame)
+        week_inner.pack(fill="x")
+
+        tb.Label(week_inner, text="第").pack(side=LEFT)
+        self.start_week = tb.Spinbox(week_inner, from_=1, to=20, width=5)
+        self.start_week.pack(side=LEFT, padx=2)
+        tb.Label(week_inner, text="至").pack(side=LEFT, padx=2)
+        self.end_week = tb.Spinbox(week_inner, from_=1, to=20, width=5)
+        self.end_week.pack(side=LEFT, padx=2)
+        tb.Label(week_inner, text="周").pack(side=LEFT)
+
+        # 星期几选择部分修改
+        day_frame = tb.Frame(grid_frame)
+        day_frame.grid(row=6, column=0, columnspan=3, sticky="ew", padx=5, pady=5)
+
+        tb.Label(day_frame, text="上课星期", font=("Helvetica", 10, "bold")).pack(anchor="w", pady=(0, 5))
+        day_inner = tb.Frame(day_frame)
+        day_inner.pack(fill="x")
+
+        self.day_var = tb.IntVar(value=1)
+        for i in range(7):
+            day_btn = tb.Radiobutton(day_inner, 
+                                 text=self.app.days_of_week[i],
+                                 variable=self.day_var, 
+                                 value=i + 1)
+            day_btn.pack(side=LEFT, padx=5)
 
         # 配置网格权重
         grid_frame.columnconfigure(1, weight=1)
@@ -155,7 +175,7 @@ class AddCourseDialog:
                 raise ValueError("起始周不能大于结束周")
 
             # 获取时间选择
-            time_index = self.time_combo.current()
+            time_index = self.start_time.current()
             if time_index < 0:
                 raise ValueError("请选择上课时间")
             start_time, end_time = self.app.time_slots[time_index]
