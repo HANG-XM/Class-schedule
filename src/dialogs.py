@@ -203,10 +203,23 @@ class AddSemesterDialog:
         main_frame = tb.Frame(self.dialog, padding=20)
         main_frame.pack(fill=BOTH, expand=True)
 
+        # 学期类型选择
+        tb.Label(main_frame, text="学期类型:").pack(anchor="w", pady=5)
+        self.semester_type = tb.Combobox(main_frame, 
+                                       values=["秋季", "春季"],
+                                       state="readonly")
+        self.semester_type.pack(fill="x", pady=5)
+        self.semester_type.set("秋季")
+        self.semester_type.bind('<<ComboboxSelected>>', lambda e: self.name_entry.config(
+            textvariable=tb.StringVar(value=self.generate_semester_name())
+        ))
+
         # 学期名称
         tb.Label(main_frame, text="学期名称:").pack(anchor="w", pady=5)
         self.name_entry = tb.Entry(main_frame)
         self.name_entry.pack(fill="x", pady=5)
+        self.name_entry.insert(0, self.generate_semester_name())
+        self.name_entry.config(state="readonly")
 
         # 开始日期
         tb.Label(main_frame, text="开始日期:").pack(anchor="w", pady=5)
@@ -226,6 +239,16 @@ class AddSemesterDialog:
                  bootstyle=(SECONDARY, OUTLINE)).pack(side="right", padx=5)
         tb.Button(btn_frame, text="保存", command=self.save_semester,
                  bootstyle=(SUCCESS, OUTLINE)).pack(side="right", padx=5)
+
+    def generate_semester_name(self):
+        """根据当前年份和选择的学期类型生成学期名称"""
+        current_year = datetime.now().year
+        semester_type = self.semester_type.get()
+        
+        if semester_type == "秋季":
+            return f"{current_year}年秋季学期"
+        else:
+            return f"{current_year + 1}年春季学期"
 
     def save_semester(self):
         """保存学期"""
