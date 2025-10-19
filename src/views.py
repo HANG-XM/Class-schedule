@@ -112,23 +112,34 @@ class WeekView:
             if not values:
                 return
                 
-            # 获取对应的课程
-            # 修正day_index的计算：#1 对应第0列（时间列），#2 对应第1列（周一），以此类推
-            if column == "#1":  # 时间列
+            # 修正列索引计算
+            if column == "#1":  # 第一列是时间列
                 return
-            day_index = int(column[1:]) - 1  # 将 #2 转换为 0（周一），#3 转换为 1（周二）等
-            time_index = event.widget.get_children().index(item)
+                
+            # 获取星期几（1-7）
+            # #2对应周一(1)，#3对应周二(2)，以此类推
+            day_index = int(column[1:]) - 2
+            
+            # 获取时间
+            time_parts = values[0].split('\n')
+            if len(time_parts) != 2:
+                return
+            start_time, end_time = time_parts
             
             # 查找对应的课程
-            start_time, end_time = values[0].split('\n')  # 从第一列获取时间
             week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
                         if str(c[12]) == str(self.app.current_semester[0])]
             
+            # 添加调试信息
+            logger.info(f"查找条件: 星期={day_index+1}, 时间={start_time}-{end_time}")
+            logger.info(f"本周课程列表: {week_courses}")
+            
             course = None
             for c in week_courses:
-                # 修正匹配条件：使用实际的星期几（1-7）而不是索引
+                logger.info(f"检查课程: {c[1]}, 星期={c[6]}, 时间={c[7]}-{c[8]}")
                 if c[6] == day_index + 1 and c[7] == start_time and c[8] == end_time:
                     course = c
+                    logger.info(f"找到匹配课程: {c[1]}")
                     break
                     
             if course:
@@ -140,7 +151,6 @@ class WeekView:
                 logger.warning("未找到匹配的课程")
         except Exception as e:
             logger.error(f"处理双击事件失败: {str(e)}")
-
 
 class DayView:
     def __init__(self, parent, app):
