@@ -46,9 +46,9 @@ class ModernCourseScheduleApp:
         logger.info(f"获取到的学期列表: {self.semesters}")
         
         if not self.semesters:
-            self.course_manager.add_semester("2023-2024学年", "2023-09-01", "2024-01-20")
-            self.semesters = self.course_manager.get_semesters()
-            logger.info("创建了默认学期")
+            logger.warning("没有找到学期数据，请先创建学期")
+            self.current_semester = None
+            return
         
         current_semester = self.course_manager.get_current_semester()
         if current_semester:

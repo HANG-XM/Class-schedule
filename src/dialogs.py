@@ -257,6 +257,10 @@ class AddCourseDialog:
 
     def save_course(self):
         """保存课程信息"""
+        if not self.app.current_semester:
+            messagebox.showerror("错误", "请先创建学期")
+            return
+            
         # 验证输入
         errors = self.validate_inputs()
         if errors:

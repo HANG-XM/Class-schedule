@@ -1,7 +1,8 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-from tkinter import messagebox  # 添加这行导入语句
+from tkinter import messagebox
 from logger_config import logger
+
 class TopBar:
     def __init__(self, parent, app):
         self.parent = parent
@@ -52,8 +53,18 @@ class TopBar:
         tb.Button(control_frame, text="添加课程", command=self.app.show_add_course_dialog,
                  bootstyle=SUCCESS).pack(side=LEFT, padx=10)
 
-        # 添加学期选择器
-        semester_frame = tb.Frame(top_frame)
+        # 添加新建学期按钮
+        tb.Button(control_frame, text="新建学期",
+                command=self.show_add_semester_dialog,
+                bootstyle=(PRIMARY, OUTLINE)).pack(side=LEFT, padx=5)
+
+        # 只有存在学期时才显示学期选择器
+        if self.app.current_semester:
+            self._create_semester_selector(top_frame)
+
+    def _create_semester_selector(self, parent):
+        """创建学期选择器"""
+        semester_frame = tb.Frame(parent)
         semester_frame.pack(side=RIGHT, padx=10)
         
         tb.Label(semester_frame, text="学期:").pack(side=LEFT)
@@ -64,11 +75,6 @@ class TopBar:
         semester_combo.pack(side=LEFT, padx=5)
         semester_combo.set(self.app.current_semester[1])
         semester_combo.bind('<<ComboboxSelected>>', self.on_semester_change)
-        
-        # 添加新建学期按钮
-        tb.Button(semester_frame, text="新建学期",
-                command=self.show_add_semester_dialog,
-                bootstyle=(PRIMARY, OUTLINE)).pack(side=LEFT, padx=5)
 
     def on_semester_change(self, event):
         """学期切换事件"""
@@ -94,25 +100,32 @@ class TopBar:
         self.parent.wait_window(dialog.dialog)
         # 刷新学期列表
         self.app.semesters = self.app.course_manager.get_semesters()
-        self.semester_var.set('')
-        # 获取 Combobox 组件的引用
-        for widget in self.parent.winfo_children():
-            for child in widget.winfo_children():
-                if isinstance(child, tb.Combobox) and child['textvariable'] == str(self.semester_var):
-                    semester_combo = child
-                    break
-        # 更新下拉框选项
-        semester_combo['values'] = [s[1] for s in self.app.semesters]
-        if self.app.current_semester:
-            semester_combo.set(self.app.current_semester[1])
+        if hasattr(self, 'semester_var'):
+            self.semester_var.set('')
+            # 获取 Combobox 组件的引用
+            for widget in self.parent.winfo_children():
+                for child in widget.winfo_children():
+                    if isinstance(child, tb.Combobox) and child['textvariable'] == str(self.semester_var):
+                        semester_combo = child
+                        break
+            # 更新下拉框选项
+            semester_combo['values'] = [s[1] for s in self.app.semesters]
+            if self.app.current_semester:
+                semester_combo.set(self.app.current_semester[1])
+        else:
+            # 如果不存在学期选择器，创建一个
+            self._create_semester_selector(self.parent.winfo_children()[0])
+
     def _refresh_semester_list(self):
         """刷新学期列表"""
         self.app.semesters = self.app.course_manager.get_semesters()
-        self.semester_var.set('')
-        semester_combo = self.semester_var.master
-        semester_combo['values'] = [s[1] for s in self.app.semesters]
-        if self.app.current_semester:
-            semester_combo.set(self.app.current_semester[1])
+        if hasattr(self, 'semester_var'):
+            self.semester_var.set('')
+            semester_combo = self.semester_var.master
+            semester_combo['values'] = [s[1] for s in self.app.semesters]
+            if self.app.current_semester:
+                semester_combo.set(self.app.current_semester[1])
+
 class StatsPanel:
     def __init__(self, parent):
         self.parent = parent
