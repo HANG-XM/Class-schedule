@@ -5,7 +5,6 @@ from logger_config import logger
 class CourseManager:
     def __init__(self):
         self.init_database()
-        self.migrate_database()
     
     def init_database(self):
         """初始化数据库"""
@@ -42,37 +41,6 @@ class CourseManager:
                 FOREIGN KEY (semester_id) REFERENCES semesters (id)
             )
         ''')
-        
-        conn.commit()
-        conn.close()
-
-    def migrate_database(self):
-        """数据库迁移"""
-        conn = sqlite3.connect('courses.db')
-        cursor = conn.cursor()
-        
-        # 检查courses表是否有semester_id列
-        cursor.execute("PRAGMA table_info(courses)")
-        columns = [column[1] for column in cursor.fetchall()]
-        
-        if 'semester_id' not in columns:
-            # 添加semester_id列
-            cursor.execute('ALTER TABLE courses ADD COLUMN semester_id INTEGER')
-            
-            # 如果没有当前学期，创建默认学期
-            if not self.get_current_semester():
-                self.add_semester("默认学期", "2023-09-01", "2024-01-20")
-            
-            # 获取当前学期ID
-            current_semester = self.get_current_semester()
-            if current_semester:
-                # 更新所有现有课程的semester_id为当前学期ID
-                cursor.execute('UPDATE courses SET semester_id = ?', (current_semester[0],))
-            else:
-                # 如果还是没有当前学期，使用第一个学期
-                semesters = self.get_semesters()
-                if semesters:
-                    cursor.execute('UPDATE courses SET semester_id = ?', (semesters[0][0],))
         
         conn.commit()
         conn.close()
@@ -212,41 +180,6 @@ class CourseManager:
                         is_special=?, semester_id=?
             WHERE id=?
         ''', course_data + (course_id,))
-        conn.commit()
-        conn.close()
-    def migrate_database(self):
-        """数据库迁移"""
-        conn = sqlite3.connect('courses.db')
-        cursor = conn.cursor()
-        
-        # 检查courses表是否有semester_id列
-        cursor.execute("PRAGMA table_info(courses)")
-        columns = [column[1] for column in cursor.fetchall()]
-        
-        if 'semester_id' not in columns:
-            # 添加semester_id列
-            cursor.execute('ALTER TABLE courses ADD COLUMN semester_id INTEGER')
-            
-            # 如果没有当前学期，创建默认学期
-            if not self.get_current_semester():
-                self.add_semester("默认学期", "2023-09-01", "2024-01-20")
-                current_semester = self.get_current_semester()
-                # 更新所有现有课程的semester_id
-                cursor.execute('UPDATE courses SET semester_id = ?', (current_semester[0],))
-        
-        # 修复周数数据类型
-        cursor.execute("SELECT id, start_week, end_week FROM courses")
-        courses = cursor.fetchall()
-        for course in courses:
-            try:
-                start_week = int(course[1])
-                end_week = int(course[2])
-                cursor.execute("UPDATE courses SET start_week = ?, end_week = ? WHERE id = ?",
-                            (start_week, end_week, course[0]))
-            except (ValueError, TypeError):
-                # 如果转换失败，删除这条记录
-                cursor.execute("DELETE FROM courses WHERE id = ?", (course[0],))
-        
         conn.commit()
         conn.close()
 
