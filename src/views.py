@@ -194,8 +194,8 @@ class MonthView:
         try:
             self._clear_calendar()
             self._update_month_label()
-            self._create_calendar_grid()
-            self._update_month_stats()
+            month_courses = self._create_calendar_grid()  # 获取月份课程
+            self._update_month_stats(month_courses)  # 传递月份课程参数
             logger.info(f"月视图更新完成，{self.current_date.year}年{self.current_date.month}月")
         except Exception as e:
             logger.error(f"更新月视图失败: {str(e)}")
@@ -288,8 +288,8 @@ class MonthView:
         for i in range(week_num + 1):
             self.calendar_frame.rowconfigure(i, weight=1)
 
-        # 更新统计信息
-        self._update_month_stats(month_courses)
+        # 返回月份课程列表
+        return month_courses
 
     def _update_month_stats(self, month_courses):
         """更新月份统计信息"""
