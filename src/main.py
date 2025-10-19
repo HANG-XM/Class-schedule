@@ -43,18 +43,21 @@ class ModernCourseScheduleApp:
     def init_semesters(self):
         """初始化学期"""
         self.semesters = self.course_manager.get_semesters()
+        logger.info(f"获取到的学期列表: {self.semesters}")
+        
         if not self.semesters:
-            # 如果没有学期，创建默认学期
             self.course_manager.add_semester("2023-2024学年", "2023-09-01", "2024-01-20")
             self.semesters = self.course_manager.get_semesters()
+            logger.info("创建了默认学期")
         
-        # 设置当前学期
         current_semester = self.course_manager.get_current_semester()
         if current_semester:
             self.current_semester = current_semester
+            logger.info(f"使用数据库中的当前学期: {self.current_semester}")
         else:
             self.current_semester = self.semesters[0]
             self.course_manager.set_current_semester(self.current_semester[0])
+            logger.info(f"使用第一个学期作为当前学期: {self.current_semester}")
     def setup_ui(self):
         """设置用户界面"""
         # 主容器
@@ -87,10 +90,10 @@ class ModernCourseScheduleApp:
     def load_courses(self):
         """加载课程数据"""
         self.courses = self.course_manager.get_courses()
-        # 过滤当前学期的课程
-        self.courses = [c for c in self.courses if c[11] == self.current_semester[0]]
-        logger.info(f"已加载当前学期课程，共 {len(self.courses)} 门")
+        self.courses = [c for c in self.courses if c[11] == self.app.current_semester[0]]
         logger.info(f"当前学期ID: {self.current_semester[0]}")
+        logger.info(f"加载的课程列表: {self.courses}")
+        logger.info(f"当前周数: {self.current_week}")
 
     def update_display(self):
         """更新显示"""
@@ -140,17 +143,18 @@ class ModernCourseScheduleApp:
             self.week_view.show()
     def get_current_week(self):
         """获取当前周数"""
-        # 获取当前日期
         today = datetime.now()
-        
-        # 假设学期开始日期为9月1日
         start_date = datetime(today.year, 9, 1)
-        
-        # 计算周数差
         week_diff = (today - start_date).days // 7 + 1
+        current_week = max(1, min(week_diff, 20))
         
-        # 确保周数在合理范围内
-        return max(1, min(week_diff, 20))
+        # 添加调试信息
+        logger.info(f"当前日期: {today}")
+        logger.info(f"学期开始日期: {start_date}")
+        logger.info(f"计算出的周数: {week_diff}")
+        logger.info(f"实际使用的周数: {current_week}")
+        
+        return current_week
     def run(self):
         """运行应用"""
         self.root.mainloop()

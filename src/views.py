@@ -22,8 +22,9 @@ class WeekView:
         try:
             week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
                         if c[11] == self.app.current_semester[0]]
-            logger.info(f"正在显示第 {self.app.current_week} 周课程，共 {len(week_courses)} 门")
-
+            logger.info(f"当前周数: {self.app.current_week}")
+            logger.info(f"当前学期ID: {self.app.current_semester[0]}")
+            logger.info(f"本周课程列表: {week_courses}")
             # 创建表格
             columns = ["时间"] + self.app.days_of_week
             tree = tb.Treeview(self.frame, columns=columns, show="tree headings", height=22)
