@@ -338,10 +338,16 @@ class MonthView:
                                 padding=5)
             date_label.pack(anchor="nw")
 
-            # 获取当天的课程
+            # 获取当前月份的周数范围
+            month_start = datetime(year, month, 1)
+            month_end = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
+            start_week = ((month_start - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+            end_week = ((month_end - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+
+            # 更新课程筛选条件
             day_courses = [c for c in self.app.courses
                         if int(c[6]) == current_date.weekday() + 1 and 
-                        int(c[4]) <= self.app.current_week <= int(c[5]) and
+                        int(c[4]) <= end_week and int(c[5]) >= start_week and
                         str(c[12]) == str(self.app.current_semester[0])]
             
             month_courses.extend(day_courses)
