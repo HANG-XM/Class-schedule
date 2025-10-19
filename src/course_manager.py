@@ -139,6 +139,8 @@ class CourseManager:
             is_valid = all([
                 course[1],  # name
                 course[2],  # teacher
+                course[3],  # start_week
+                course[4],  # end_week
                 course[5],  # day_of_week
                 course[6],  # start_time
                 course[7],  # end_time
