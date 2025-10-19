@@ -129,20 +129,32 @@ class AddCourseDialog:
         
         # 修改类型选项
         self.type_var = tb.StringVar(value="正常")
-        types = [
+        types_row1 = [
             ("正常课程", "正常"),
             ("早签", "早签"),
             ("自习课", "自习课"),
             ("班会", "班会"),
-            ("实验课", "实验课"),
+            ("实验课", "实验课")
+        ]
+        types_row2 = [
             ("考试", "考试"),
             ("讲座", "讲座"),
             ("社团活动", "社团活动"),
             ("运动会", "运动会")
         ]
-        
-        for text, value in types:
-            tb.Radiobutton(type_btn_frame, text=text, variable=self.type_var, 
+
+        # 第一行
+        type_btn_row1 = tb.Frame(type_btn_frame)
+        type_btn_row1.pack(side=TOP, pady=(0, 5))
+        for text, value in types_row1:
+            tb.Radiobutton(type_btn_row1, text=text, variable=self.type_var, 
+                        value=value, command=self.update_type_preview).pack(side=LEFT, padx=(0, 10))
+
+        # 第二行
+        type_btn_row2 = tb.Frame(type_btn_frame)
+        type_btn_row2.pack(side=TOP)
+        for text, value in types_row2:
+            tb.Radiobutton(type_btn_row2, text=text, variable=self.type_var, 
                         value=value, command=self.update_type_preview).pack(side=LEFT, padx=(0, 10))
 
         # 类型预览
