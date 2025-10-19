@@ -115,13 +115,35 @@ class CourseManager:
             conn.close()
     
     def get_courses(self) -> List[Tuple]:
-        """获取所有课程"""
         try:
             conn = sqlite3.connect('courses.db')
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM courses ORDER BY semester_id, day_of_week, start_time')
             courses = cursor.fetchall()
-            valid_courses = [c for c in courses if self._is_valid_course(c)]
+            # 转换数据类型
+            valid_courses = []
+            for c in courses:
+                try:
+                    processed_course = (
+                        c[0],  # id
+                        c[1],  # name
+                        c[2],  # teacher
+                        c[3],  # location
+                        int(c[4]),  # start_week
+                        int(c[5]),  # end_week
+                        int(c[6]),  # day_of_week
+                        c[7],  # start_time
+                        c[8],  # end_time
+                        c[9],  # color
+                        c[10], # course_type
+                        c[11], # is_special
+                        c[12]  # semester_id
+                    )
+                    if self._is_valid_course(processed_course):
+                        valid_courses.append(processed_course)
+                except (ValueError, TypeError):
+                    logger.warning(f"跳过无效课程数据: {c}")
+                    continue
             logger.info(f"获取到 {len(valid_courses)} 门有效课程")
             return valid_courses
         except Exception as e:

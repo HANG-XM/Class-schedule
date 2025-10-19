@@ -16,7 +16,6 @@ class WeekView:
 
     def show(self):
         """显示周视图"""
-        # 清空现有内容
         for widget in self.frame.winfo_children():
             widget.destroy()
         try:
@@ -27,8 +26,11 @@ class WeekView:
                         bootstyle=WARNING).pack(expand=True)
                 return
 
+            # 确保周数在有效范围内
+            self.app.current_week = max(1, min(self.app.current_week, 20))
+            
             week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
-                        if str(c[11]) == str(self.app.current_semester[0])]
+                        if str(c[12]) == str(self.app.current_semester[0])]
             logger.info(f"当前周数: {self.app.current_week}")
             logger.info(f"当前学期ID: {self.app.current_semester[0]}")
             logger.info(f"本周课程列表: {week_courses}")
@@ -59,12 +61,12 @@ class WeekView:
 
             # 添加课程到表格
             for course in week_courses:
-                day_index = course[5]  # 星期几 (1-7)
+                day_index = course[6]  # 星期几 (1-7)
                 time_index = None
 
                 # 找到对应的时间段
                 for i, (start, end) in enumerate(self.app.time_slots):
-                    if course[6] == start and course[7] == end:
+                    if course[7] == start and course[8] == end:
                         time_index = i
                         break
 

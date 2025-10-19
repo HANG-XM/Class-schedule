@@ -56,6 +56,7 @@ class ModernCourseScheduleApp:
         if not self.semesters:
             logger.warning("没有找到学期数据，请先创建学期")
             self.current_semester = None
+            messagebox.showwarning("提示", "请先创建学期")
             return
         
         current_semester = self.course_manager.get_current_semester()
@@ -104,7 +105,7 @@ class ModernCourseScheduleApp:
             return
 
         self.courses = self.course_manager.get_courses()
-        self.courses = [c for c in self.courses if c[11] == str(self.current_semester[0])]
+        self.courses = [c for c in self.courses if c[12] == str(self.current_semester[0])]
         logger.info(f"当前学期ID: {self.current_semester[0]}")
         logger.info(f"加载的课程列表: {self.courses}")
         logger.info(f"当前周数: {self.current_week}")
