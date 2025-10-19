@@ -102,20 +102,14 @@ class TopBar:
         self.app.semesters = self.app.course_manager.get_semesters()
         if hasattr(self, 'semester_var'):
             self.semester_var.set('')
-            # 获取 Combobox 组件的引用
-            for widget in self.parent.winfo_children():
-                for child in widget.winfo_children():
-                    if isinstance(child, tb.Combobox) and child['textvariable'] == str(self.semester_var):
-                        semester_combo = child
-                        break
             # 更新下拉框选项
+            semester_combo = self.semester_var.master
             semester_combo['values'] = [s[1] for s in self.app.semesters]
             if self.app.current_semester:
                 semester_combo.set(self.app.current_semester[1])
         else:
             # 如果不存在学期选择器，创建一个
             self._create_semester_selector(self.parent.winfo_children()[0])
-
     def _refresh_semester_list(self):
         """刷新学期列表"""
         self.app.semesters = self.app.course_manager.get_semesters()
