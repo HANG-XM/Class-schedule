@@ -113,16 +113,20 @@ class WeekView:
                 return
                 
             # 获取对应的课程
-            day_index = int(column[1:]) - 1  # 将 #1 转换为 0，#2 转换为 1 等
+            # 修正day_index的计算：#1 对应第0列（时间列），#2 对应第1列（周一），以此类推
+            if column == "#1":  # 时间列
+                return
+            day_index = int(column[1:]) - 1  # 将 #2 转换为 0（周一），#3 转换为 1（周二）等
             time_index = event.widget.get_children().index(item)
             
             # 查找对应的课程
-            start_time, end_time = self.app.time_slots[time_index]
+            start_time, end_time = values[0].split('\n')  # 从第一列获取时间
             week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
                         if str(c[12]) == str(self.app.current_semester[0])]
             
             course = None
             for c in week_courses:
+                # 修正匹配条件：使用实际的星期几（1-7）而不是索引
                 if c[6] == day_index + 1 and c[7] == start_time and c[8] == end_time:
                     course = c
                     break
@@ -131,8 +135,12 @@ class WeekView:
                 # 打开编辑对话框
                 from dialogs import EditCourseDialog
                 EditCourseDialog(self.parent, self.app, course)
+                logger.info(f"打开编辑对话框: {course[1]}")
+            else:
+                logger.warning("未找到匹配的课程")
         except Exception as e:
             logger.error(f"处理双击事件失败: {str(e)}")
+
 
 class DayView:
     def __init__(self, parent, app):
