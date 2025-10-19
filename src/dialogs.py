@@ -3,6 +3,7 @@ from ttkbootstrap.constants import *
 from tkinter import messagebox
 from datetime import datetime
 from logger_config import logger
+from course_manager import SpecialCourse  # 添加这行导入语句
 class AddCourseDialog:
     def __init__(self, parent, app):
         self.parent = parent
@@ -126,11 +127,14 @@ class AddCourseDialog:
         type_btn_frame = tb.Frame(type_frame)
         type_btn_frame.pack(side=LEFT, padx=(10, 0))
         
+        # 修改类型选项
         self.type_var = tb.StringVar(value="正常")
-        tb.Radiobutton(type_btn_frame, text="正常课程", variable=self.type_var, 
-                      value="正常", command=self.update_type_preview).pack(side=LEFT, padx=(0, 10))
-        tb.Radiobutton(type_btn_frame, text="调休课程", variable=self.type_var, 
-                      value="调休", command=self.update_type_preview).pack(side=LEFT)
+        types = [("正常课程", "正常"), ("调休课程", "调休"), ("早签", "早签"), 
+                ("自习课", "自习课"), ("班会", "班会"), ("实验课", "实验课"), ("考试", "考试")]
+        
+        for text, value in types:
+            tb.Radiobutton(type_btn_frame, text=text, variable=self.type_var, 
+                        value=value, command=self.update_type_preview).pack(side=LEFT, padx=(0, 10))
 
         # 类型预览
         self.type_preview = tb.Label(section_frame, text="普通课程", 
@@ -215,9 +219,18 @@ class AddCourseDialog:
         if course_type == "正常":
             preview_text = "普通课程 - 按正常课表安排"
             style = SUCCESS
-        else:
+        elif course_type == "调休":
             preview_text = "调休课程 - 特殊时间安排，可能需要调整"
             style = WARNING
+        else:
+            # 特殊课程类型
+            if course_type in SpecialCourse.TYPES:
+                duration = SpecialCourse.TYPES[course_type]["duration"]
+                preview_text = f"{course_type} - 时长{duration}分钟"
+                style = INFO
+            else:
+                preview_text = "特殊课程"
+                style = INFO
         
         self.type_preview.config(text=preview_text, bootstyle=style)
 
@@ -273,20 +286,30 @@ class AddCourseDialog:
             time_index = self.start_time.current()
             start_time, end_time = self.app.time_slots[time_index]
             
+            # 获取课程类型
+            course_type = self.type_var.get()
+            is_special = "1" if course_type != "正常" else "0"
+            
+            # 根据课程类型获取颜色
+            if course_type in SpecialCourse.TYPES:
+                color = SpecialCourse.TYPES[course_type]["color"]
+            else:
+                color = self.color_var.get()
+            
             # 准备课程数据
             course_data = (
                 self.name_entry.get().strip(),
                 self.teacher_entry.get().strip(),
                 self.location_entry.get().strip(),
-                self.start_week.get(),  # 保存为字符串
-                self.end_week.get(),    # 保存为字符串
-                str(self.day_var.get()),  # 转换为字符串
+                self.start_week.get(),
+                self.end_week.get(),
+                str(self.day_var.get()),
                 start_time,
                 end_time,
-                self.color_var.get(),
-                self.type_var.get(),
-                "1" if self.type_var.get() == "调休" else "0",  # 保存为字符串
-                str(self.app.current_semester[0])  # 转换为字符串
+                color,
+                course_type,
+                is_special,
+                str(self.app.current_semester[0])
             )
 
             logger.info(f"准备保存课程: {course_data[0]}")
