@@ -105,7 +105,7 @@ class ModernCourseScheduleApp:
             return
 
         self.courses = self.course_manager.get_courses()
-        self.courses = [c for c in self.courses if c[12] == str(self.current_semester[0])]
+        self.courses = [c for c in self.courses if str(c[12]) == str(self.current_semester[0])]
         logger.info(f"当前学期ID: {self.current_semester[0]}")
         logger.info(f"加载的课程列表: {self.courses}")
         logger.info(f"当前周数: {self.current_week}")

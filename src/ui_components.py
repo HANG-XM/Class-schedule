@@ -162,6 +162,7 @@ class StatsPanel:
 
     def _calculate_stats(self, courses, current_week, course_manager):
         """计算统计信息"""
+        week_courses = course_manager.get_courses_by_week(current_week)
         return {
             "total": {
                 "text": "总课程数",
@@ -170,17 +171,17 @@ class StatsPanel:
             },
             "weekly": {
                 "text": "本周课程",
-                "value": len(course_manager.get_courses_by_week(current_week)),
+                "value": len(week_courses),
                 "style": "success"
             },
             "normal": {
                 "text": "正常课程",
-                "value": len([c for c in courses if not c[10]]),
+                "value": len([c for c in courses if not c[11]]),
                 "style": "info"
             },
             "special": {
-                "text": "调休课程",
-                "value": len([c for c in courses if c[10]]),
+                "text": "特殊课程",
+                "value": len([c for c in courses if c[11]]),
                 "style": "warning"
             }
         }
