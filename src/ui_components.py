@@ -102,11 +102,13 @@ class TopBar:
         self.app.semesters = self.app.course_manager.get_semesters()
         if hasattr(self, 'semester_var'):
             self.semester_var.set('')
-            # 更新下拉框选项
-            semester_combo = self.semester_var.master
-            semester_combo['values'] = [s[1] for s in self.app.semesters]
-            if self.app.current_semester:
-                semester_combo.set(self.app.current_semester[1])
+            # 获取 Combobox 组件的正确方式
+            for widget in self.parent.winfo_children():
+                if isinstance(widget, tb.Combobox):
+                    widget['values'] = [s[1] for s in self.app.semesters]
+                    if self.app.current_semester:
+                        widget.set(self.app.current_semester[1])
+                    break
         else:
             # 如果不存在学期选择器，创建一个
             self._create_semester_selector(self.parent.winfo_children()[0])
@@ -115,10 +117,13 @@ class TopBar:
         self.app.semesters = self.app.course_manager.get_semesters()
         if hasattr(self, 'semester_var'):
             self.semester_var.set('')
-            semester_combo = self.semester_var.master
-            semester_combo['values'] = [s[1] for s in self.app.semesters]
-            if self.app.current_semester:
-                semester_combo.set(self.app.current_semester[1])
+            # 获取 Combobox 组件的正确方式
+            for widget in self.parent.winfo_children():
+                if isinstance(widget, tb.Combobox):
+                    widget['values'] = [s[1] for s in self.app.semesters]
+                    if self.app.current_semester:
+                        widget.set(self.app.current_semester[1])
+                    break
 
 class StatsPanel:
     def __init__(self, parent):
