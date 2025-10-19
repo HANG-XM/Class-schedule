@@ -18,8 +18,8 @@ class ModernCourseScheduleApp:
         self.root.minsize(1200, 800)
 
         self._init_variables()
-        self._init_semesters()
-        self._setup_ui()
+        self.init_semesters()
+        self.setup_ui()
         self._post_init()
     def _init_variables(self):
         """初始化变量"""

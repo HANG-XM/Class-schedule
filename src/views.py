@@ -289,7 +289,7 @@ class MonthView:
             self.calendar_frame.rowconfigure(i, weight=1)
 
         # 更新统计信息
-        self.update_stats(month_courses)
+        self._update_month_stats(month_courses)
 
     def _update_month_stats(self, month_courses):
         """更新月份统计信息"""
