@@ -344,10 +344,11 @@ class MonthView:
             start_week = ((month_start - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
             end_week = ((month_end - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
 
-            # 更新课程筛选条件
+            # 计算当前日期对应的周数
+            current_week = ((current_date - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
             day_courses = [c for c in self.app.courses
                         if int(c[6]) == current_date.weekday() + 1 and 
-                        int(c[4]) <= self.app.current_week <= int(c[5]) and
+                        int(c[4]) <= current_week <= int(c[5]) and
                         str(c[12]) == str(self.app.current_semester[0])]
             
             month_courses.extend(day_courses)
@@ -360,9 +361,9 @@ class MonthView:
                 # 最多显示3门课程
                 for i, course in enumerate(day_courses[:3]):
                     course_label = tb.Label(course_frame, 
-                                        text=course[1][:6],  # 显示课程名前6个字符
+                                        text=course[1][:6],
                                         font=("Helvetica", 8),
-                                        bootstyle=course[8])
+                                        bootstyle=course[9])  # 使用正确的颜色索引
                     course_label.pack(fill=X, pady=1)
                 
                 # 如果课程数超过3，显示"+N"
