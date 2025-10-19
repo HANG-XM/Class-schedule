@@ -89,7 +89,24 @@ class TopBar:
     def show_add_semester_dialog(self):
         """显示新建学期对话框"""
         from dialogs import AddSemesterDialog
-        AddSemesterDialog(self.parent, self.app)
+        dialog = AddSemesterDialog(self.parent, self.app)
+        # 等待对话框关闭
+        self.parent.wait_window(dialog.dialog)
+        # 刷新学期列表
+        self.app.semesters = self.app.course_manager.get_semesters()
+        self.semester_var.set('')
+        semester_combo = self.semester_var.master
+        semester_combo['values'] = [s[1] for s in self.app.semesters]
+        if self.app.current_semester:
+            semester_combo.set(self.app.current_semester[1])
+    def _refresh_semester_list(self):
+        """刷新学期列表"""
+        self.app.semesters = self.app.course_manager.get_semesters()
+        self.semester_var.set('')
+        semester_combo = self.semester_var.master
+        semester_combo['values'] = [s[1] for s in self.app.semesters]
+        if self.app.current_semester:
+            semester_combo.set(self.app.current_semester[1])
 class StatsPanel:
     def __init__(self, parent):
         self.parent = parent
