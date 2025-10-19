@@ -17,12 +17,16 @@ class ModernCourseScheduleApp:
         self.root.geometry("1400x900")
         self.root.minsize(1200, 800)
 
-        self._init_variables()
+        # 首先初始化基本变量
+        self._init_basic_variables()
+        # 然后初始化学期
         self.init_semesters()
+        # 最后设置UI
         self.setup_ui()
         self._post_init()
-    def _init_variables(self):
-        """初始化变量"""
+
+    def _init_basic_variables(self):
+        """初始化基本变量"""
         self.course_manager = CourseManager()
         self.current_view = "week"
         self.current_theme = "flatly"
@@ -33,13 +37,14 @@ class ModernCourseScheduleApp:
         ]
         self.days_of_week = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         self.courses = []
-        self.current_week = self.get_current_week()
 
     def _post_init(self):
         """UI初始化后的设置"""
+        self.current_week = self.get_current_week()
         self.top_bar.week_var.set(self.current_week)
         self.load_courses()
         self.update_display()
+
     def init_semesters(self):
         """初始化学期"""
         self.semesters = self.course_manager.get_semesters()
@@ -58,6 +63,7 @@ class ModernCourseScheduleApp:
             self.current_semester = self.semesters[0]
             self.course_manager.set_current_semester(self.current_semester[0])
             logger.info(f"使用第一个学期作为当前学期: {self.current_semester}")
+
     def setup_ui(self):
         """设置用户界面"""
         # 主容器
@@ -95,7 +101,7 @@ class ModernCourseScheduleApp:
             return
 
         self.courses = self.course_manager.get_courses()
-        self.courses = [c for c in self.courses if c[11] == self.current_semester[0]]
+        self.courses = [c for c in self.courses if c[11] == str(self.current_semester[0])]
         logger.info(f"当前学期ID: {self.current_semester[0]}")
         logger.info(f"加载的课程列表: {self.courses}")
         logger.info(f"当前周数: {self.current_week}")
@@ -146,10 +152,11 @@ class ModernCourseScheduleApp:
         # 如果当前是周视图，刷新显示
         if self.current_view == "week":
             self.week_view.show()
+
     def get_current_week(self):
         """获取当前周数"""
         if not self.current_semester:
-            return 1
+            return 1  # 如果没有学期，默认返回第1周
             
         today = datetime.now()
         start_date = datetime.strptime(self.current_semester[2], "%Y-%m-%d")
@@ -162,7 +169,7 @@ class ModernCourseScheduleApp:
         logger.info(f"实际使用的周数: {current_week}")
         
         return current_week
-    
+
     def run(self):
         """运行应用"""
         self.root.mainloop()
