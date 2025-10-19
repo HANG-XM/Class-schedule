@@ -28,7 +28,7 @@ class WeekView:
                 return
 
             week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
-                        if c[11] == self.app.current_semester[0]]
+                        if str(c[11]) == str(self.app.current_semester[0])]
             logger.info(f"当前周数: {self.app.current_week}")
             logger.info(f"当前学期ID: {self.app.current_semester[0]}")
             logger.info(f"本周课程列表: {week_courses}")
@@ -273,9 +273,9 @@ class MonthView:
 
             # 获取当天的课程
             day_courses = [c for c in self.app.courses
-                        if c[6] == str(current_date.weekday() + 1) and 
+                        if int(c[6]) == current_date.weekday() + 1 and 
                         int(c[4]) <= self.app.current_week <= int(c[5]) and
-                        c[12] == str(self.app.current_semester[0])]
+                        str(c[11]) == str(self.app.current_semester[0])]
             
             month_courses.extend(day_courses)
 

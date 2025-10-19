@@ -166,12 +166,12 @@ class CourseManager:
     def get_courses_by_week(self, week: int) -> List[Tuple]:
         """获取指定周的课程"""
         courses = self.get_courses()
-        return [c for c in courses if c[3] <= week <= c[4]]  # 移除int()转换，因为数据库中的值已经是整数
+        return [c for c in courses if int(c[3]) <= week <= int(c[4])]
     
     def get_courses_by_day(self, day: int, week: int) -> List[Tuple]:
         """获取指定周指定日的课程"""
         courses = self.get_courses()
-        return [c for c in courses if c[5] == day and c[3] <= week <= c[4]]  # 移除int()转换，因为数据库中的值已经是整数
+        return [c for c in courses if int(c[5]) == day and int(c[3]) <= week <= int(c[4])]
     
     def update_course(self, course_id: int, course_data: Tuple) -> None:
         """更新课程信息"""
