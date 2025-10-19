@@ -74,7 +74,7 @@ class WeekView:
 
                     # 获取当前值并更新
                     current_values = list(tree.item(item_id, "values"))
-                    course_text = f"{course[1]}\n{course[2]}\n{course[3]}-{course[4]}周"
+                    course_text = f"{course[1]}\n{course[2]}\n{course[4]}-{course[5]}周"
                     current_values[day_index] = course_text
 
                     # 更新值
@@ -132,7 +132,7 @@ class DayView:
 
                     tb.Label(frame, text=f"{course[1]}",
                             font=("Helvetica", 14)).pack(side=LEFT)
-                    tb.Label(frame, text=f"{course[6]}-{course[7]}",
+                    tb.Label(frame, text=f"{course[7]}-{course[8]}",
                             bootstyle=INFO).pack(side=RIGHT)
             else:
                 tb.Label(content, text="当天暂无课程",
@@ -273,9 +273,9 @@ class MonthView:
 
             # 获取当天的课程
             day_courses = [c for c in self.app.courses
-                        if c[5] == current_date.weekday() + 1 and 
-                        c[3] <= self.app.current_week <= c[4] and
-                        c[11] == self.app.current_semester[0]]
+                        if c[6] == current_date.weekday() + 1 and 
+                        c[4] <= self.app.current_week <= c[5] and
+                        c[12] == self.app.current_semester[0]]
             
             month_courses.extend(day_courses)
 
