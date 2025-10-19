@@ -144,6 +144,11 @@ class CourseManager:
                 course[8],  # end_time
             ]
             
+            # 验证数据类型
+            int(course[4])  # start_week
+            int(course[5])  # end_week
+            int(course[6])  # day_of_week
+            
             # 验证所有必要字段
             is_valid = all(required_fields)
             if not is_valid:
@@ -155,6 +160,7 @@ class CourseManager:
         except (ValueError, TypeError, IndexError) as e:
             logger.error(f"课程数据验证失败: {course}, 错误: {e}")
             return False
+
     def delete_course(self, course_id: int) -> None:
         """删除课程"""
         conn = sqlite3.connect('courses.db')
@@ -166,12 +172,12 @@ class CourseManager:
     def get_courses_by_week(self, week: int) -> List[Tuple]:
         """获取指定周的课程"""
         courses = self.get_courses()
-        return [c for c in courses if int(c[3]) <= week <= int(c[4])]
+        return [c for c in courses if int(c[4]) <= week <= int(c[5])]
     
     def get_courses_by_day(self, day: int, week: int) -> List[Tuple]:
         """获取指定周指定日的课程"""
         courses = self.get_courses()
-        return [c for c in courses if int(c[5]) == day and int(c[3]) <= week <= int(c[4])]
+        return [c for c in courses if int(c[6]) == day and int(c[4]) <= week <= int(c[5])]
     
     def update_course(self, course_id: int, course_data: Tuple) -> None:
         """更新课程信息"""
