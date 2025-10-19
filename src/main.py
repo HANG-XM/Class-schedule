@@ -21,6 +21,8 @@ class ModernCourseScheduleApp:
         self._init_basic_variables()
         # 然后初始化学期
         self.init_semesters()
+        # 设置默认周数
+        self.current_week = 1
         # 最后设置UI
         self.setup_ui()
         self._post_init()
@@ -37,6 +39,7 @@ class ModernCourseScheduleApp:
         ]
         self.days_of_week = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         self.courses = []
+        self.current_week = 1
 
     def _post_init(self):
         """UI初始化后的设置"""

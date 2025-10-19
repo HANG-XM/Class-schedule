@@ -25,7 +25,7 @@ class TopBar:
 
         # 周数控制
         tb.Label(control_frame, text="第").pack(side=LEFT, padx=(0, 5))
-        self.week_var = tb.IntVar(value=self.app.current_week)
+        self.week_var = tb.IntVar(value=getattr(self.app, 'current_week', 1))
         week_spinbox = tb.Spinbox(control_frame, from_=1, to=20, width=5,
                                  textvariable=self.week_var, command=self.app.on_week_change)
         week_spinbox.pack(side=LEFT, padx=5)
