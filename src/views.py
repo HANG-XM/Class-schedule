@@ -79,7 +79,7 @@ class WeekView:
 
                     # 获取当前值并更新
                     current_values = list(tree.item(item_id, "values"))
-                    course_text = f"{course[1]}\n{course[2]}\n{course[4]}-{course[5]}周"
+                    course_text = f"{course[1]}\n{course[3]}\n{course[2]}\n{course[4]}-{course[5]}周"
                     current_values[day_index] = course_text
 
                     # 更新值
