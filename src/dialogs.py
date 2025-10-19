@@ -423,3 +423,88 @@ class AddSemesterDialog:
             
         except ValueError as ve:
             messagebox.showerror("错误", str(ve))
+class EditCourseDialog(AddCourseDialog):
+    def __init__(self, parent, app, course):
+        self.course = course
+        super().__init__(parent, app)
+        self.dialog.title("编辑课程")
+        self.load_course_data()
+
+    def load_course_data(self):
+        """加载课程数据到表单"""
+        try:
+            # 基本信息
+            self.name_entry.insert(0, self.course[1])
+            self.teacher_entry.insert(0, self.course[2])
+            self.location_entry.insert(0, self.course[3])
+            
+            # 时间设置
+            time_str = f"{self.course[7]}-{self.course[8]}"
+            self.start_time.set(time_str)
+            self.start_week.set(self.course[4])
+            self.end_week.set(self.course[5])
+            
+            # 星期设置
+            self.day_var.set(self.course[6])
+            
+            # 课程类型和颜色
+            self.type_var.set("调休" if self.course[11] else "正常")
+            self.color_var.set(self.course[9])
+            
+            # 更新预览
+            self.update_time_preview()
+            self.update_type_preview()
+        except Exception as e:
+            logger.error(f"加载课程数据失败: {str(e)}")
+            raise
+
+    def save_course(self):
+        """保存课程信息"""
+        if not self.app.current_semester:
+            messagebox.showerror("错误", "请先创建学期")
+            return
+            
+        # 验证输入
+        errors = self.validate_inputs()
+        if errors:
+            logger.warning(f"课程验证失败: {errors}")
+            messagebox.showerror("输入错误", "\n".join(errors))
+            return
+            
+        try:
+            # 获取时间选择
+            time_index = self.start_time.current()
+            start_time, end_time = self.app.time_slots[time_index]
+            
+            # 准备课程数据
+            course_data = (
+                self.name_entry.get().strip(),
+                self.teacher_entry.get().strip(),
+                self.location_entry.get().strip(),
+                self.start_week.get(),
+                self.end_week.get(),
+                str(self.day_var.get()),
+                start_time,
+                end_time,
+                self.color_var.get(),
+                self.type_var.get(),
+                "1" if self.type_var.get() == "调休" else "0",
+                str(self.app.current_semester[0])
+            )
+
+            logger.info(f"准备更新课程: {course_data[0]}")
+            # 更新数据库
+            self.app.course_manager.update_course(self.course[0], course_data)
+            
+            # 更新界面
+            self.app.load_courses()
+            self.app.update_display()
+            
+            # 关闭对话框并提示成功
+            self.dialog.destroy()
+            logger.info(f"课程更新成功: {course_data[0]}")
+            messagebox.showinfo("成功", "课程更新成功！")
+
+        except Exception as e:
+            logger.error(f"更新课程失败: {str(e)}")
+            messagebox.showerror("错误", f"更新课程失败: {str(e)}")

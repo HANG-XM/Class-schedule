@@ -82,10 +82,54 @@ class WeekView:
                     # 更新值
                     tree.item(item_id, values=current_values)
 
+            # 添加双击事件处理
+            tree.bind("<Double-Button-1>", self.on_course_double_click)
             tree.pack(fill=BOTH, expand=True)
         except Exception as e:
             logger.error(f"显示周视图失败: {str(e)}")
             raise
+
+    def on_course_double_click(self, event):
+        """处理表格双击事件"""
+        try:
+            # 获取点击的位置
+            region = event.widget.identify_region(event.x, event.y)
+            if region != "cell":
+                return
+                
+            # 获取点击的列和行
+            column = event.widget.identify_column(event.x)
+            item = event.widget.identify_row(event.y)
+            
+            if not item:
+                return
+                
+            # 获取时间索引和星期索引
+            values = event.widget.item(item, "values")
+            if not values:
+                return
+                
+            # 获取对应的课程
+            day_index = int(column[1:]) - 1  # 将 #1 转换为 0，#2 转换为 1 等
+            time_index = event.widget.get_children().index(item)
+            
+            # 查找对应的课程
+            start_time, end_time = self.app.time_slots[time_index]
+            week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
+                           if str(c[12]) == str(self.app.current_semester[0])]
+            
+            course = None
+            for c in week_courses:
+                if c[6] == day_index + 1 and c[7] == start_time and c[8] == end_time:
+                    course = c
+                    break
+                    
+            if course:
+                # 打开编辑对话框
+                from dialogs import EditCourseDialog
+                EditCourseDialog(self.parent, self.app, course)
+        except Exception as e:
+            logger.error(f"处理双击事件失败: {str(e)}")
 
 class DayView:
     def __init__(self, parent, app):
