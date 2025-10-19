@@ -89,8 +89,13 @@ class ModernCourseScheduleApp:
 
     def load_courses(self):
         """加载课程数据"""
+        if not self.current_semester:
+            logger.warning("没有选择当前学期")
+            self.courses = []
+            return
+
         self.courses = self.course_manager.get_courses()
-        self.courses = [c for c in self.courses if c[11] == self.app.current_semester[0]]
+        self.courses = [c for c in self.courses if c[11] == self.current_semester[0]]
         logger.info(f"当前学期ID: {self.current_semester[0]}")
         logger.info(f"加载的课程列表: {self.courses}")
         logger.info(f"当前周数: {self.current_week}")

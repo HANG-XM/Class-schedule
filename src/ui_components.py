@@ -144,6 +144,12 @@ class StatsPanel:
             for widget in self.stats_frame.winfo_children():
                 widget.destroy()
 
+            if not courses:
+                tb.Label(self.stats_frame, text="暂无课程数据", 
+                        font=("Helvetica", 12),
+                        bootstyle=SECONDARY).pack(expand=True)
+                return
+
             # 计算统计信息
             stats = self._calculate_stats(courses, current_week, course_manager)
             
