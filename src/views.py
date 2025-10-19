@@ -342,7 +342,7 @@ class MonthView:
             day_courses = [c for c in self.app.courses
                         if int(c[6]) == current_date.weekday() + 1 and 
                         int(c[4]) <= self.app.current_week <= int(c[5]) and
-                        str(c[11]) == str(self.app.current_semester[0])]
+                        str(c[12]) == str(self.app.current_semester[0])]
             
             month_courses.extend(day_courses)
 
@@ -382,9 +382,8 @@ class MonthView:
         return month_courses
 
     def _update_month_stats(self, month_courses):
-        """更新月份统计信息"""
         try:
-            special_count = len([c for c in month_courses if c[10]])
+            special_count = len([c for c in month_courses if c[11]])  # 修正索引
             self.total_courses.config(text=f"总课程数: {len(month_courses)}")
             self.special_courses.config(text=f"特殊课程: {special_count}")
         except Exception as e:
