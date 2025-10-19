@@ -129,8 +129,17 @@ class AddCourseDialog:
         
         # 修改类型选项
         self.type_var = tb.StringVar(value="正常")
-        types = [("正常课程", "正常"), ("调休课程", "调休"), ("早签", "早签"), 
-                ("自习课", "自习课"), ("班会", "班会"), ("实验课", "实验课"), ("考试", "考试")]
+        types = [
+            ("正常课程", "正常"),
+            ("早签", "早签"),
+            ("自习课", "自习课"),
+            ("班会", "班会"),
+            ("实验课", "实验课"),
+            ("考试", "考试"),
+            ("讲座", "讲座"),
+            ("社团活动", "社团活动"),
+            ("运动会", "运动会")
+        ]
         
         for text, value in types:
             tb.Radiobutton(type_btn_frame, text=text, variable=self.type_var, 
@@ -219,9 +228,6 @@ class AddCourseDialog:
         if course_type == "正常":
             preview_text = "普通课程 - 按正常课表安排"
             style = SUCCESS
-        elif course_type == "调休":
-            preview_text = "调休课程 - 特殊时间安排，可能需要调整"
-            style = WARNING
         else:
             # 特殊课程类型
             if course_type in SpecialCourse.TYPES:

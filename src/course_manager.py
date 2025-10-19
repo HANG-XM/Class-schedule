@@ -220,7 +220,10 @@ class SpecialCourse:
         "自习课": {"color": "info", "duration": 45},
         "班会": {"color": "success", "duration": 60},
         "实验课": {"color": "danger", "duration": 90},
-        "考试": {"color": "primary", "duration": 120}
+        "考试": {"color": "primary", "duration": 120},
+        "讲座": {"color": "secondary", "duration": 90},
+        "社团活动": {"color": "info", "duration": 120},
+        "运动会": {"color": "warning", "duration": 240}
     }
     
     @classmethod
