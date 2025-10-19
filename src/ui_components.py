@@ -2,6 +2,7 @@ import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from tkinter import messagebox
 from logger_config import logger
+from course_manager import SpecialCourse
 
 class TopBar:
     def __init__(self, parent, app):
@@ -163,7 +164,20 @@ class StatsPanel:
     def _calculate_stats(self, courses, current_week, course_manager):
         """计算统计信息"""
         week_courses = course_manager.get_courses_by_week(current_week)
-        return {
+        
+        # 计算各类特殊课程数量
+        special_stats = {}
+        for course_type in SpecialCourse.TYPES:
+            count = len([c for c in courses if c[10] == course_type])
+            if count > 0:
+                special_stats[course_type] = {
+                    "text": course_type,
+                    "value": count,
+                    "style": SpecialCourse.TYPES[course_type]["color"]
+                }
+        
+        # 基础统计信息
+        stats = {
             "total": {
                 "text": "总课程数",
                 "value": len(courses),
@@ -178,13 +192,12 @@ class StatsPanel:
                 "text": "正常课程",
                 "value": len([c for c in courses if not c[11]]),
                 "style": "info"
-            },
-            "special": {
-                "text": "特殊课程",
-                "value": len([c for c in courses if c[11]]),
-                "style": "warning"
             }
         }
+        
+        # 添加特殊课程统计
+        stats.update(special_stats)
+        return stats
 
     def _create_stat_widget(self, stat_type, stats_dict):
         """创建统计信息组件"""
