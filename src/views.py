@@ -347,7 +347,7 @@ class MonthView:
             # 更新课程筛选条件
             day_courses = [c for c in self.app.courses
                         if int(c[6]) == current_date.weekday() + 1 and 
-                        int(c[4]) <= end_week and int(c[5]) >= start_week and
+                        int(c[4]) <= self.app.current_week <= int(c[5]) and
                         str(c[12]) == str(self.app.current_semester[0])]
             
             month_courses.extend(day_courses)
