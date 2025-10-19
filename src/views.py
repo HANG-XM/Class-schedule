@@ -2,7 +2,7 @@ import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from datetime import datetime, timedelta
 from logger_config import logger
-
+from dialogs import EditCourseDialog
 class WeekView:
     def __init__(self, parent, app):
         self.parent = parent
@@ -38,6 +38,9 @@ class WeekView:
             # 创建表格
             columns = ["时间"] + self.app.days_of_week
             tree = tb.Treeview(self.frame, columns=columns, show="tree headings", height=22)
+            
+            # 绑定双击事件
+            tree.bind("<Double-Button-1>", self.on_course_double_click)
 
             # 设置列宽和样式
             style = tb.Style()
@@ -82,8 +85,6 @@ class WeekView:
                     # 更新值
                     tree.item(item_id, values=current_values)
 
-            # 添加双击事件处理
-            tree.bind("<Double-Button-1>", self.on_course_double_click)
             tree.pack(fill=BOTH, expand=True)
         except Exception as e:
             logger.error(f"显示周视图失败: {str(e)}")
@@ -94,12 +95,14 @@ class WeekView:
         try:
             # 获取点击的位置
             region = event.widget.identify_region(event.x, event.y)
+            logger.info(f"双击位置: {region}")
             if region != "cell":
                 return
                 
             # 获取点击的列和行
             column = event.widget.identify_column(event.x)
             item = event.widget.identify_row(event.y)
+            logger.info(f"点击位置: 列={column}, 行={item}")
             
             if not item:
                 return
@@ -116,7 +119,7 @@ class WeekView:
             # 查找对应的课程
             start_time, end_time = self.app.time_slots[time_index]
             week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
-                           if str(c[12]) == str(self.app.current_semester[0])]
+                        if str(c[12]) == str(self.app.current_semester[0])]
             
             course = None
             for c in week_courses:
