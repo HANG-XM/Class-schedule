@@ -8,42 +8,40 @@ class CourseManager:
     
     def init_database(self):
         """初始化数据库"""
-        conn = sqlite3.connect('courses.db')
-        cursor = conn.cursor()
-        
-        # 创建学期表
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS semesters (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                start_date TEXT NOT NULL,
-                end_date TEXT NOT NULL,
-                current INTEGER DEFAULT 0
-            )
-        ''')
-        
-        # 创建课程表
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS courses (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                teacher TEXT NOT NULL,
-                location TEXT NOT NULL,
-                start_week INTEGER NOT NULL,
-                end_week INTEGER NOT NULL,
-                day_of_week INTEGER NOT NULL,
-                start_time TEXT NOT NULL,
-                end_time TEXT NOT NULL,
-                color TEXT NOT NULL,
-                course_type TEXT NOT NULL,
-                is_special INTEGER NOT NULL,
-                semester_id INTEGER NOT NULL,
-                FOREIGN KEY (semester_id) REFERENCES semesters (id)
-            )
-        ''')
-        
-        conn.commit()
-        conn.close()
+        try:
+            with sqlite3.connect('courses.db') as conn:
+                cursor = conn.cursor()
+                cursor.executescript('''
+                    CREATE TABLE IF NOT EXISTS semesters (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        start_date TEXT NOT NULL,
+                        end_date TEXT NOT NULL,
+                        current INTEGER DEFAULT 0
+                    );
+                    
+                    CREATE TABLE IF NOT EXISTS courses (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        name TEXT NOT NULL,
+                        teacher TEXT NOT NULL,
+                        location TEXT NOT NULL,
+                        start_week INTEGER NOT NULL,
+                        end_week INTEGER NOT NULL,
+                        day_of_week INTEGER NOT NULL,
+                        start_time TEXT NOT NULL,
+                        end_time TEXT NOT NULL,
+                        color TEXT NOT NULL,
+                        course_type TEXT NOT NULL,
+                        is_special INTEGER NOT NULL,
+                        semester_id INTEGER NOT NULL,
+                        FOREIGN KEY (semester_id) REFERENCES semesters (id)
+                    );
+                ''')
+                conn.commit()
+                logger.info("数据库初始化成功")
+        except sqlite3.Error as e:
+            logger.error(f"数据库初始化失败: {str(e)}")
+            raise
 
     def add_semester(self, name, start_date, end_date):
         """添加学期"""

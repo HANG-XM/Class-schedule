@@ -103,30 +103,53 @@ class StatsPanel:
 
     def update_stats(self, courses, current_week, course_manager):
         """更新统计信息"""
-        # 清空现有统计信息
-        for widget in self.stats_frame.winfo_children():
-            widget.destroy()
+        try:
+            # 清空现有统计信息
+            for widget in self.stats_frame.winfo_children():
+                widget.destroy()
 
-        # 计算统计信息
-        total_courses = len(courses)
-        current_week_courses = len(course_manager.get_courses_by_week(current_week))
+            # 计算统计信息
+            stats = self._calculate_stats(courses, current_week, course_manager)
+            
+            # 创建统计信息显示
+            for stat_type, stats_dict in stats.items():
+                self._create_stat_widget(stat_type, stats_dict)
+                
+        except Exception as e:
+            logger.error(f"更新统计信息失败: {str(e)}")
+            raise
 
-        # 按类型统计
-        normal_courses = len([c for c in courses if c[10] == 0])
-        special_courses = len([c for c in courses if c[10] == 1])
+    def _calculate_stats(self, courses, current_week, course_manager):
+        """计算统计信息"""
+        return {
+            "total": {
+                "text": "总课程数",
+                "value": len(courses),
+                "style": "primary"
+            },
+            "weekly": {
+                "text": "本周课程",
+                "value": len(course_manager.get_courses_by_week(current_week)),
+                "style": "success"
+            },
+            "normal": {
+                "text": "正常课程",
+                "value": len([c for c in courses if not c[10]]),
+                "style": "info"
+            },
+            "special": {
+                "text": "调休课程",
+                "value": len([c for c in courses if c[10]]),
+                "style": "warning"
+            }
+        }
 
-        # 显示统计信息
-        stats_data = [
-            ("总课程数", total_courses, "primary"),
-            ("本周课程", current_week_courses, "success"),
-            ("正常课程", normal_courses, "info"),
-            ("调休课程", special_courses, "warning")
-        ]
-
-        for text, value, style in stats_data:
-            frame = tb.Frame(self.stats_frame)
-            frame.pack(fill=X, pady=5)
-
-            tb.Label(frame, text=text, font=("Helvetica", 10)).pack(side=LEFT)
-            tb.Label(frame, text=str(value), bootstyle=style,
-                    font=("Helvetica", 12, "bold")).pack(side=RIGHT)
+    def _create_stat_widget(self, stat_type, stats_dict):
+        """创建统计信息组件"""
+        frame = tb.Frame(self.stats_frame)
+        frame.pack(fill=X, pady=5)
+        
+        tb.Label(frame, text=stats_dict["text"], font=("Helvetica", 10)).pack(side=LEFT)
+        tb.Label(frame, text=str(stats_dict["value"]), 
+                bootstyle=stats_dict["style"],
+                font=("Helvetica", 12, "bold")).pack(side=RIGHT)

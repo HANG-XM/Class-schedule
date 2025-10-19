@@ -1,17 +1,33 @@
 import logging
+from logging.handlers import RotatingFileHandler
 
 def setup_logger():
     """配置日志系统"""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        handlers=[
-            logging.StreamHandler(),  # 控制台输出
-            logging.FileHandler('app.log', encoding='utf-8')  # 文件输出
-        ]
+    logger = logging.getLogger('CourseSchedule')
+    logger.setLevel(logging.INFO)
+    
+    # 创建格式化器
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
     )
-    return logging.getLogger('CourseSchedule')
+    
+    # 控制台处理器
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    
+    # 文件处理器（带轮转）
+    file_handler = RotatingFileHandler(
+        'app.log',
+        maxBytes=1024*1024,  # 1MB
+        backupCount=5,
+        encoding='utf-8'
+    )
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    
+    return logger
 
 # 创建全局logger实例
 logger = setup_logger()

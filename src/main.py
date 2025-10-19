@@ -12,44 +12,34 @@ from logger_config import logger
 class ModernCourseScheduleApp:
     def __init__(self):
         self.root = tb.Window(themename="flatly")
-        self.style = tb.Style(theme="flatly")  # 默认主题
+        self.style = tb.Style(theme="flatly")
         self.root.title("小梦课程表")
         self.root.geometry("1400x900")
         self.root.minsize(1200, 800)
 
+        self._init_variables()
+        self._init_semesters()
+        self._setup_ui()
+        self._post_init()
+    def _init_variables(self):
+        """初始化变量"""
         self.course_manager = CourseManager()
-        self.current_view = "week"  # week, day, month
+        self.current_view = "week"
         self.current_theme = "flatly"
-
-        # 主题选项
         self.themes = ["flatly", "darkly", "solar", "superhero", "cyborg"]
-
-        # 时间设置
         self.time_slots = [
             ("07:35", "07:45"), ("08:00", "09:40"), ("10:00", "11:40"),
             ("14:00", "15:40"), ("16:00", "17:40"), ("19:00", "20:40")
         ]
-
         self.days_of_week = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
-
-        # 初始化courses属性
         self.courses = []
-
-        # 初始化学期数据
-        self.init_semesters()
-
-        # 初始化当前周数
         self.current_week = self.get_current_week()
 
-        # 创建UI
-        self.setup_ui()
-        
-        # 设置周数选择器的值
+    def _post_init(self):
+        """UI初始化后的设置"""
         self.top_bar.week_var.set(self.current_week)
-        
         self.load_courses()
         self.update_display()
-
     def init_semesters(self):
         """初始化学期"""
         self.semesters = self.course_manager.get_semesters()
