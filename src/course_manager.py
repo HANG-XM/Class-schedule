@@ -86,14 +86,14 @@ class CourseManager:
         try:
             conn = sqlite3.connect('courses.db')
             cursor = conn.cursor()
-            # 将周数转换为整数
+            # 将周数和星期转换为整数
             processed_data = (
                 course_data[0],  # name
                 course_data[1],  # teacher
                 course_data[2],  # location
                 int(course_data[3]),  # start_week
                 int(course_data[4]),  # end_week
-                course_data[5],  # day_of_week
+                int(course_data[5]),  # day_of_week
                 course_data[6],  # start_time
                 course_data[7],  # end_time
                 course_data[8],  # color
