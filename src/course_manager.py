@@ -213,7 +213,17 @@ class CourseManager:
         ''', course_data + (course_id,))
         conn.commit()
         conn.close()
-
+    def update_semester(self, semester_id: int, name: str, start_date: str, end_date: str) -> None:
+        """更新学期信息"""
+        conn = sqlite3.connect('courses.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            UPDATE semesters 
+            SET name=?, start_date=?, end_date=?
+            WHERE id=?
+        ''', (name, start_date, end_date, semester_id))
+        conn.commit()
+        conn.close()
 class SpecialCourse:
     TYPES = {
         "早签": {"color": "warning", "duration": 30},

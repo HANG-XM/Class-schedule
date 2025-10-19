@@ -58,6 +58,10 @@ class TopBar:
         tb.Button(control_frame, text="新建学期",
                 command=self.show_add_semester_dialog,
                 bootstyle=(PRIMARY, OUTLINE)).pack(side=LEFT, padx=5)
+        # 添加修改学期按钮
+        tb.Button(control_frame, text="修改学期",
+                command=self.show_edit_semester_dialog,
+                bootstyle=(INFO, OUTLINE)).pack(side=LEFT, padx=5)
 
         # 只有存在学期时才显示学期选择器
         if self.app.current_semester:
@@ -125,7 +129,12 @@ class TopBar:
                     if self.app.current_semester:
                         widget.set(self.app.current_semester[1])
                     break
-
+    def show_edit_semester_dialog(self):
+        """显示修改学期对话框"""
+        from dialogs import EditSemesterDialog
+        dialog = EditSemesterDialog(self.parent, self.app)
+        self.parent.wait_window(dialog.dialog)
+        self._refresh_semester_list()
 class StatsPanel:
     def __init__(self, parent):
         self.parent = parent

@@ -549,3 +549,155 @@ class EditCourseDialog(AddCourseDialog):
         except Exception as e:
             logger.error(f"更新课程失败: {str(e)}")
             messagebox.showerror("错误", f"更新课程失败: {str(e)}")
+class EditSemesterDialog:
+    def __init__(self, parent, app):
+        self.parent = parent
+        self.app = app
+        self.create_dialog()
+
+    def create_dialog(self):
+        """创建修改学期对话框"""
+        self.dialog = tb.Toplevel(self.parent)
+        self.dialog.title("修改学期")
+        self.dialog.geometry("500x430")
+        self.dialog.transient(self.parent)
+        self.dialog.grab_set()
+
+        main_frame = tb.Frame(self.dialog, padding=20)
+        main_frame.pack(fill=BOTH, expand=True)
+
+        # 学期选择
+        tb.Label(main_frame, text="选择学期:", font=("Helvetica", 12)).pack(anchor="w", pady=(10, 5))
+        self.semester_combo = tb.Combobox(main_frame, 
+                                   values=[s[1] for s in self.app.semesters],
+                                   state="readonly",
+                                   font=("Helvetica", 11))
+        self.semester_combo.pack(fill="x", pady=(0, 15))
+        if self.app.current_semester:
+            self.semester_combo.set(self.app.current_semester[1])
+        self.semester_combo.bind('<<ComboboxSelected>>', self.on_semester_select)
+
+        # 学期类型
+        tb.Label(main_frame, text="学期类型:", font=("Helvetica", 12)).pack(anchor="w", pady=(10, 5))
+        self.semester_type = tb.Combobox(main_frame, 
+                                   values=["秋季", "春季"],
+                                   state="readonly",
+                                   font=("Helvetica", 11))
+        self.semester_type.pack(fill="x", pady=(0, 15))
+        self.semester_type.bind('<<ComboboxSelected>>', self.update_semester_name)
+
+        # 学期名称
+        tb.Label(main_frame, text="学期名称:", font=("Helvetica", 12)).pack(anchor="w", pady=(10, 5))
+        self.name_entry = tb.Entry(main_frame, font=("Helvetica", 11))
+        self.name_entry.pack(fill="x", pady=(0, 15))
+
+        # 日期选择框架
+        date_frame = tb.Frame(main_frame)
+        date_frame.pack(fill="x", pady=20)
+
+        # 开始日期
+        start_frame = tb.Frame(date_frame)
+        start_frame.pack(fill="x", pady=(0, 15))
+        tb.Label(start_frame, text="开始日期:", font=("Helvetica", 12)).pack(side=LEFT)
+        self.start_date = tb.DateEntry(start_frame, bootstyle="primary", 
+                                    dateformat="%Y-%m-%d")
+        self.start_date.pack(side=LEFT, padx=10)
+
+        # 结束日期
+        end_frame = tb.Frame(date_frame)
+        end_frame.pack(fill="x", pady=(0, 15))
+        tb.Label(end_frame, text="结束日期:", font=("Helvetica", 12)).pack(side=LEFT)
+        self.end_date = tb.DateEntry(end_frame, bootstyle="primary",
+                                dateformat="%Y-%m-%d")
+        self.end_date.pack(side=LEFT, padx=10)
+
+        # 按钮
+        btn_frame = tb.Frame(main_frame)
+        btn_frame.pack(fill="x", pady=0)
+        
+        tb.Button(btn_frame, text="取消", command=self.dialog.destroy,
+                bootstyle=(SECONDARY, OUTLINE), width=10).pack(side="right", padx=5)
+        tb.Button(btn_frame, text="保存", command=self.save_semester,
+                bootstyle=(SUCCESS, OUTLINE), width=10).pack(side="right", padx=5)
+
+        # 加载选中学期数据
+        self.on_semester_select()
+
+    def on_semester_select(self, event=None):
+        """处理学期选择事件"""
+        selected_name = self.semester_combo.get()
+        for semester in self.app.semesters:
+            if semester[1] == selected_name:
+                self.current_semester = semester
+                self.name_entry.delete(0, tb.END)
+                self.name_entry.insert(0, semester[1])
+                self.start_date.entry.delete(0, tb.END)
+                self.start_date.entry.insert(0, semester[2])
+                self.end_date.entry.delete(0, tb.END)
+                self.end_date.entry.insert(0, semester[3])
+                break
+
+    def update_semester_name(self):
+        """更新学期名称"""
+        current_year = datetime.now().year
+        semester_type = self.semester_type.get()
+        
+        if semester_type == "秋季":
+            new_name = f"{current_year}年秋季学期"
+        else:
+            new_name = f"{current_year + 1}年春季学期"
+            
+        self.name_entry.delete(0, tb.END)
+        self.name_entry.insert(0, new_name)
+
+    def save_semester(self):
+        """保存学期修改"""
+        try:
+            name = self.name_entry.get().strip()
+            start = self.start_date.entry.get()
+            end = self.end_date.entry.get()
+            
+            if not all([name, start, end]):
+                raise ValueError("请填写完整信息")
+                
+            # 验证日期格式
+            try:
+                start_date = datetime.strptime(start, "%Y-%m-%d")
+                end_date = datetime.strptime(end, "%Y-%m-%d")
+            except ValueError:
+                raise ValueError("日期格式不正确，请使用YYYY-MM-DD格式")
+                
+            # 验证日期范围
+            if start_date >= end_date:
+                raise ValueError("结束日期必须晚于开始日期")
+                    
+            # 更新数据库
+            self.app.course_manager.update_semester(
+                self.current_semester[0],  # semester_id
+                name,  # name
+                start,  # start_date
+                end     # end_date
+            )
+            
+            # 更新本地数据
+            self.app.semesters = self.app.course_manager.get_semesters()
+            if self.current_semester[0] == self.app.current_semester[0]:
+                self.app.current_semester = (
+                    self.current_semester[0],
+                    name,
+                    start,
+                    end,
+                    self.current_semester[4]
+                )
+            
+            # 重新加载课程并更新显示
+            self.app.load_courses()
+            self.app.update_display()
+            
+            self.dialog.destroy()
+            messagebox.showinfo("成功", "学期修改成功！")
+            
+        except ValueError as ve:
+            messagebox.showerror("错误", str(ve))
+        except Exception as e:
+            messagebox.showerror("错误", f"修改学期失败: {str(e)}")
