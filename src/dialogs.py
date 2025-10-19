@@ -278,15 +278,15 @@ class AddCourseDialog:
                 self.name_entry.get().strip(),
                 self.teacher_entry.get().strip(),
                 self.location_entry.get().strip(),
-                int(self.start_week.get()),
-                int(self.end_week.get()),
-                self.day_var.get(),
+                self.start_week.get(),  # 保存为字符串
+                self.end_week.get(),    # 保存为字符串
+                str(self.day_var.get()),  # 转换为字符串
                 start_time,
                 end_time,
                 self.color_var.get(),
                 self.type_var.get(),
-                1 if self.type_var.get() == "调休" else 0,
-                self.app.current_semester[0]  # 学期ID
+                "1" if self.type_var.get() == "调休" else "0",  # 保存为字符串
+                str(self.app.current_semester[0])  # 转换为字符串
             )
 
             logger.info(f"准备保存课程: {course_data[0]}")

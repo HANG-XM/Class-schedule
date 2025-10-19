@@ -148,18 +148,21 @@ class ModernCourseScheduleApp:
             self.week_view.show()
     def get_current_week(self):
         """获取当前周数"""
+        if not self.current_semester:
+            return 1
+            
         today = datetime.now()
-        start_date = datetime(today.year, 9, 1)
+        start_date = datetime.strptime(self.current_semester[2], "%Y-%m-%d")
         week_diff = (today - start_date).days // 7 + 1
         current_week = max(1, min(week_diff, 20))
         
-        # 添加调试信息
         logger.info(f"当前日期: {today}")
         logger.info(f"学期开始日期: {start_date}")
         logger.info(f"计算出的周数: {week_diff}")
         logger.info(f"实际使用的周数: {current_week}")
         
         return current_week
+    
     def run(self):
         """运行应用"""
         self.root.mainloop()

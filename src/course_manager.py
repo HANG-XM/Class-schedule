@@ -136,33 +136,21 @@ class CourseManager:
             required_fields = [
                 course[1],  # name
                 course[2],  # teacher
-                course[3],  # start_week
-                course[4],  # end_week
-                course[5],  # day_of_week
-                course[6],  # start_time
-                course[7],  # end_time
+                course[3],  # location
+                course[4],  # start_week
+                course[5],  # end_week
+                course[6],  # day_of_week
+                course[7],  # start_time
+                course[8],  # end_time
             ]
             
-            # 检查数字字段
-            start_week = int(course[3])
-            end_week = int(course[4])
-            day_of_week = int(course[5])
-            
-            # 验证周数范围
-            if not (1 <= start_week <= 20 and 1 <= end_week <= 20):
-                logger.warning(f"周数范围无效: {start_week}-{end_week}")
-                return False
-                
-            # 验证星期范围
-            if not (1 <= day_of_week <= 7):
-                logger.warning(f"星期范围无效: {day_of_week}")
-                return False
-                
             # 验证所有必要字段
             is_valid = all(required_fields)
             if not is_valid:
                 logger.warning(f"无效课程数据: {course}")
-            return is_valid
+                return is_valid
+                
+            return True
                 
         except (ValueError, TypeError, IndexError) as e:
             logger.error(f"课程数据验证失败: {course}, 错误: {e}")
