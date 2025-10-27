@@ -17,73 +17,77 @@ class TopBar:
 
         # 标题
         title_label = tb.Label(top_frame, text="智能课程表", font=("Helvetica", 20, "bold"),
-                              bootstyle=PRIMARY)
+                            bootstyle=PRIMARY)
         title_label.pack(side=LEFT)
 
-        # 控制按钮组
-        control_frame = tb.Frame(top_frame)
-        control_frame.pack(side=RIGHT)
+        # 创建Notebook用于分组
+        control_notebook = tb.Notebook(top_frame)
+        control_notebook.pack(side=RIGHT, fill=X, expand=True)
+
+        # 基础控制标签页
+        basic_frame = tb.Frame(control_notebook)
+        control_notebook.add(basic_frame, text="基础控制")
 
         # 周数控制
-        tb.Label(control_frame, text="第").pack(side=LEFT, padx=(0, 5))
+        week_frame = tb.Frame(basic_frame)
+        week_frame.pack(side=LEFT, padx=5)
+        tb.Label(week_frame, text="第").pack(side=LEFT)
         self.week_var = tb.IntVar(value=getattr(self.app, 'current_week', 1))
-        week_spinbox = tb.Spinbox(control_frame, from_=1, to=20, width=5,
-                                 textvariable=self.week_var, command=self.app.on_week_change)
+        week_spinbox = tb.Spinbox(week_frame, from_=1, to=20, width=5,
+                                textvariable=self.week_var, command=self.app.on_week_change)
         week_spinbox.pack(side=LEFT, padx=5)
-        tb.Label(control_frame, text="周").pack(side=LEFT, padx=(0, 10))
+        tb.Label(week_frame, text="周").pack(side=LEFT)
 
         # 视图切换
-        view_btn_frame = tb.Frame(control_frame)
-        view_btn_frame.pack(side=LEFT, padx=10)
+        view_frame = tb.Frame(basic_frame)
+        view_frame.pack(side=LEFT, padx=5)
+        tb.Button(view_frame, text="周视图", command=lambda: self.app.switch_view("week"),
+                bootstyle=OUTLINE).pack(side=LEFT, padx=2)
+        tb.Button(view_frame, text="日视图", command=lambda: self.app.switch_view("day"),
+                bootstyle=OUTLINE).pack(side=LEFT, padx=2)
+        tb.Button(view_frame, text="月视图", command=lambda: self.app.switch_view("month"),
+                bootstyle=OUTLINE).pack(side=LEFT, padx=2)
 
-        tb.Button(view_btn_frame, text="周视图", command=lambda: self.app.switch_view("week"),
-                 bootstyle=OUTLINE).pack(side=LEFT, padx=2)
-        tb.Button(view_btn_frame, text="日视图", command=lambda: self.app.switch_view("day"),
-                 bootstyle=OUTLINE).pack(side=LEFT, padx=2)
-        tb.Button(view_btn_frame, text="月视图", command=lambda: self.app.switch_view("month"),
-                 bootstyle=OUTLINE).pack(side=LEFT, padx=2)
-        # 搜索框架
-        search_frame = tb.Frame(control_frame)
-        search_frame.pack(side=LEFT, padx=10)
+        # 搜索标签页
+        search_frame = tb.Frame(control_notebook)
+        control_notebook.add(search_frame, text="搜索")
 
-        # 搜索类型选择
+        # 搜索控件
         self.search_type = tb.Combobox(search_frame, values=["课程名称", "教师姓名", "教室地点"],
-                              state="readonly", width=10)
+                                state="readonly", width=10)
         self.search_type.set("课程名称")
-        self.search_type.pack(side=LEFT, padx=(0, 5))
+        self.search_type.pack(side=LEFT, padx=5)
 
-        # 搜索输入框
         self.search_var = tb.StringVar()
         self.search_entry = tb.Entry(search_frame, textvariable=self.search_var, width=15)
-        self.search_entry.pack(side=LEFT, padx=(0, 5))
+        self.search_entry.pack(side=LEFT, padx=5)
         self.search_entry.bind('<Return>', lambda e: self.app.search_courses())
 
-        # 搜索按钮
         tb.Button(search_frame, text="搜索", command=self.app.search_courses,
-                 bootstyle=INFO).pack(side=LEFT)
+                bootstyle=INFO).pack(side=LEFT, padx=5)
+
+        # 高级功能标签页
+        advanced_frame = tb.Frame(control_notebook)
+        control_notebook.add(advanced_frame, text="高级")
+
         # 主题切换
-        theme_combo = tb.Combobox(control_frame, values=self.app.themes, width=10,
-                                 state="readonly")
+        theme_combo = tb.Combobox(advanced_frame, values=self.app.themes, width=10,
+                                state="readonly")
         theme_combo.set(self.app.current_theme)
-        theme_combo.pack(side=LEFT, padx=10)
+        theme_combo.pack(side=LEFT, padx=5)
         theme_combo.bind('<<ComboboxSelected>>', self.app.on_theme_change)
 
-        # 添加课程按钮
-        tb.Button(control_frame, text="添加课程", command=self.app.show_add_course_dialog,
-                 bootstyle=SUCCESS).pack(side=LEFT, padx=10)
-
-        # 添加新建学期按钮
-        tb.Button(control_frame, text="新建学期",
-                command=self.show_add_semester_dialog,
+        # 课程管理按钮
+        tb.Button(advanced_frame, text="添加课程", command=self.app.show_add_course_dialog,
+                bootstyle=SUCCESS).pack(side=LEFT, padx=5)
+        tb.Button(advanced_frame, text="新建学期", command=self.show_add_semester_dialog,
                 bootstyle=(PRIMARY, OUTLINE)).pack(side=LEFT, padx=5)
-        # 添加修改学期按钮
-        tb.Button(control_frame, text="修改学期",
-                command=self.show_edit_semester_dialog,
+        tb.Button(advanced_frame, text="修改学期", command=self.show_edit_semester_dialog,
                 bootstyle=(INFO, OUTLINE)).pack(side=LEFT, padx=5)
 
         # 只有存在学期时才显示学期选择器
         if self.app.current_semester:
-            self._create_semester_selector(top_frame)
+            self._create_semester_selector(advanced_frame)
 
     def _create_semester_selector(self, parent):
         """创建学期选择器"""
