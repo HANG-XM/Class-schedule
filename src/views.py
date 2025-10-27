@@ -88,11 +88,16 @@ class WeekView:
                     # 设置单元格颜色
                     color = course[9]  # 获取课程颜色
                     if color:  # 确保颜色值存在
+                        # 使用 ttkbootstrap 的颜色样式
+                        bg_color = style.lookup(f"color.{color}", "background")
+                        if not bg_color:  # 如果颜色不存在，使用默认颜色
+                            bg_color = color
+                        
                         # 创建标签样式
-                        style_name = f"Course.{color}"
-                        style.configure(style_name, background=color)
+                        style_name = f"color.{color}"
+                        style.configure(style_name, background=bg_color)
                         # 应用样式到单元格
-                        tree.tag_configure(color, background=color)
+                        tree.tag_configure(color, background=bg_color)
                         tree.item(item_id, tags=(color,))
 
             tree.pack(fill=BOTH, expand=True)
