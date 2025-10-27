@@ -87,8 +87,7 @@ class TopBar:
         # 搜索类型选择
         self.search_type = tb.Combobox(search_container, 
                                     values=["课程名称", "教师姓名", "教室地点"],
-                                    state="readonly", width=12,
-                                    bootstyle=(INFO, OUTLINE))
+                                    state="readonly", width=12)
         self.search_type.set("课程名称")
         self.search_type.pack(side=LEFT, padx=5)
 
@@ -117,8 +116,7 @@ class TopBar:
         tb.Label(theme_frame, text="主题:", 
                 font=("Helvetica", 10)).pack(side=LEFT, padx=5)
         theme_combo = tb.Combobox(theme_frame, values=self.app.themes, width=12,
-                                state="readonly",
-                                bootstyle=(SECONDARY, OUTLINE))
+                                state="readonly")
         theme_combo.set(self.app.current_theme)
         theme_combo.pack(side=LEFT, padx=5)
         theme_combo.bind('<<ComboboxSelected>>', self.app.on_theme_change)
