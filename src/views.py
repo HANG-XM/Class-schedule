@@ -101,9 +101,15 @@ class WeekView:
                         # 获取实际颜色值
                         bg_color = color_map.get(color, color)
                         
-                        # 直接设置标签样式，不使用 style.configure
-                        tree.tag_configure(color, background=bg_color)
-                        tree.item(item_id, tags=(color,))
+                        # 创建唯一的标签名称
+                        tag_name = f"course_{color}_{item_id}"
+                        
+                        # 配置标签样式
+                        tree.tag_configure(tag_name, background=bg_color)
+                        
+                        # 只对包含课程的单元格应用颜色
+                        tree.item(item_id, tags=(tag_name,))
+                        tree.set(item_id, self.app.days_of_week[day_index-1], course_text)
 
             tree.pack(fill=BOTH, expand=True)
         except Exception as e:
