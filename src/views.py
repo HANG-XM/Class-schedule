@@ -88,23 +88,22 @@ class WeekView:
                     # 设置单元格颜色
                     color = course[9]  # 获取课程颜色
                     if color:  # 确保颜色值存在
-                        # 使用 ttkbootstrap 的颜色样式
-                        bg_color = style.lookup(f"color.{color}", "background")
-                        if not bg_color:  # 如果颜色不存在，使用默认颜色
-                            bg_color = color
-                        
-                        # 创建标签样式
-                        style_name = f"color.{color}"
-                        style.configure(style_name, background=bg_color)
-                        # 应用样式到单元格
-                        tree.tag_configure(color, background=bg_color)
-                        tree.item(item_id, tags=(color,))
+                        # 使用 ttkbootstrap 的标准颜色
+                        if color in ["primary", "success", "warning", "danger", "info", "secondary"]:
+                            # 使用预定义的颜色样式
+                            tree.tag_configure(color, background=color)
+                            tree.item(item_id, tags=(color,))
+                        else:
+                            # 对于自定义颜色，使用样式配置
+                            style_name = f"color.{color}"
+                            style.configure(style_name, background=color)
+                            tree.tag_configure(color, background=color)
+                            tree.item(item_id, tags=(color,))
 
             tree.pack(fill=BOTH, expand=True)
         except Exception as e:
             logger.error(f"显示周视图失败: {str(e)}")
             raise
-
     def on_course_double_click(self, event):
         """处理表格双击事件"""
         try:
