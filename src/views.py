@@ -88,17 +88,25 @@ class WeekView:
                     # 设置单元格颜色
                     color = course[9]  # 获取课程颜色
                     if color:  # 确保颜色值存在
-                        # 使用 ttkbootstrap 的标准颜色
-                        if color in ["primary", "success", "warning", "danger", "info", "secondary"]:
-                            # 使用预定义的颜色样式
-                            tree.tag_configure(color, background=color)
-                            tree.item(item_id, tags=(color,))
-                        else:
-                            # 对于自定义颜色，使用样式配置
-                            style_name = f"color.{color}"
-                            style.configure(style_name, background=color)
-                            tree.tag_configure(color, background=color)
-                            tree.item(item_id, tags=(color,))
+                        # 定义颜色映射
+                        color_map = {
+                            "primary": "#007bff",
+                            "success": "#28a745",
+                            "warning": "#ffc107",
+                            "danger": "#dc3545",
+                            "info": "#17a2b8",
+                            "secondary": "#6c757d"
+                        }
+                        
+                        # 获取实际颜色值
+                        bg_color = color_map.get(color, color)
+                        
+                        # 创建标签样式
+                        style_name = f"color.{color}"
+                        style.configure(style_name, background=bg_color)
+                        # 应用样式到单元格
+                        tree.tag_configure(color, background=bg_color)
+                        tree.item(item_id, tags=(color,))
 
             tree.pack(fill=BOTH, expand=True)
         except Exception as e:
