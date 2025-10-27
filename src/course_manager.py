@@ -224,6 +224,22 @@ class CourseManager:
         ''', (name, start_date, end_date, semester_id))
         conn.commit()
         conn.close()
+    def search_courses(self, keyword: str, search_type: str = "name") -> List[Tuple]:
+        """搜索课程
+        Args:
+            keyword: 搜索关键词
+            search_type: 搜索类型 ("name", "teacher", "location")
+        Returns:
+            List[Tuple]: 匹配的课程列表
+        """
+        courses = self.get_courses()
+        if search_type == "name":
+            return [c for c in courses if keyword.lower() in c[1].lower()]
+        elif search_type == "teacher":
+            return [c for c in courses if keyword.lower() in c[2].lower()]
+        elif search_type == "location":
+            return [c for c in courses if keyword.lower() in c[3].lower()]
+        return []
 class SpecialCourse:
     TYPES = {
         "早签": {"color": "warning", "duration": 30},

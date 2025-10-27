@@ -96,7 +96,23 @@ class ModernCourseScheduleApp:
     def show_add_course_dialog(self):
         """显示添加课程对话框"""
         AddCourseDialog(self.root, self)
+    def search_courses(self):
+        """处理课程搜索"""
+        keyword = self.top_bar.search_var.get().strip()
+        if not keyword:
+            self.load_courses()
+            return
 
+        search_type_map = {
+            "课程名称": "name",
+            "教师姓名": "teacher",
+            "教室地点": "location"
+        }
+        search_type = search_type_map.get(self.top_bar.search_type.get(), "name")
+        
+        self.courses = self.course_manager.search_courses(keyword, search_type)
+        self.courses = [c for c in self.courses if str(c[12]) == str(self.current_semester[0])]
+        self.update_display()
     def load_courses(self):
         """加载课程数据"""
         if not self.current_semester:

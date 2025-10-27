@@ -42,7 +42,25 @@ class TopBar:
                  bootstyle=OUTLINE).pack(side=LEFT, padx=2)
         tb.Button(view_btn_frame, text="月视图", command=lambda: self.app.switch_view("month"),
                  bootstyle=OUTLINE).pack(side=LEFT, padx=2)
+        # 搜索框架
+        search_frame = tb.Frame(control_frame)
+        search_frame.pack(side=LEFT, padx=10)
 
+        # 搜索类型选择
+        self.search_type = tb.Combobox(search_frame, values=["课程名称", "教师姓名", "教室地点"],
+                              state="readonly", width=10)
+        self.search_type.set("课程名称")
+        self.search_type.pack(side=LEFT, padx=(0, 5))
+
+        # 搜索输入框
+        self.search_var = tb.StringVar()
+        self.search_entry = tb.Entry(search_frame, textvariable=self.search_var, width=15)
+        self.search_entry.pack(side=LEFT, padx=(0, 5))
+        self.search_entry.bind('<Return>', lambda e: self.app.search_courses())
+
+        # 搜索按钮
+        tb.Button(search_frame, text="搜索", command=self.app.search_courses,
+                 bootstyle=INFO).pack(side=LEFT)
         # 主题切换
         theme_combo = tb.Combobox(control_frame, values=self.app.themes, width=10,
                                  state="readonly")
