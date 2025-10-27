@@ -20,16 +20,6 @@ class TopBar:
         inner_frame = tb.Frame(top_frame, padding=10)
         inner_frame.pack(fill=X, expand=True)
 
-        # 标题区域
-        title_frame = tb.Frame(inner_frame)
-        title_frame.pack(side=LEFT, padx=(0, 20))
-
-        # 添加图标和标题
-        title_label = tb.Label(title_frame, text="📚 智能课程表", 
-                            font=("Helvetica", 24, "bold"),
-                            bootstyle=(PRIMARY, INVERSE))
-        title_label.pack(side=LEFT)
-
         # 创建控制面板容器
         control_container = tb.Frame(inner_frame)
         control_container.pack(side=RIGHT, fill=X, expand=True)
