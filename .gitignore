@@ -2,6 +2,8 @@ __pycache__
 
 .venv/
 data/
+build/
+dist/
 
 courses.db
 app.log

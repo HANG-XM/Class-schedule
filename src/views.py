@@ -82,8 +82,18 @@ class WeekView:
                     course_text = f"{course[1]}\n{course[3]}\n{course[2]}\n{course[4]}-{course[5]}周"
                     current_values[day_index] = course_text
 
-                    # 更新值
+                    # 更新值和样式
                     tree.item(item_id, values=current_values)
+                    
+                    # 设置单元格颜色
+                    color = course[9]  # 获取课程颜色
+                    if color:  # 确保颜色值存在
+                        # 创建标签样式
+                        style_name = f"Course.{color}"
+                        style.configure(style_name, background=color)
+                        # 应用样式到单元格
+                        tree.tag_configure(color, background=color)
+                        tree.item(item_id, tags=(color,))
 
             tree.pack(fill=BOTH, expand=True)
         except Exception as e:
