@@ -95,8 +95,7 @@ class TopBar:
         self.search_var = tb.StringVar()
         self.search_entry = tb.Entry(search_container, 
                                 textvariable=self.search_var, 
-                                width=20,
-                                bootstyle=(INFO, OUTLINE))
+                                width=20)
         self.search_entry.pack(side=LEFT, padx=5)
         self.search_entry.bind('<Return>', lambda e: self.app.search_courses())
 
