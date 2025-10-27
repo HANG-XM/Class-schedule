@@ -101,10 +101,7 @@ class WeekView:
                         # 获取实际颜色值
                         bg_color = color_map.get(color, color)
                         
-                        # 创建标签样式
-                        style_name = f"color.{color}"
-                        style.configure(style_name, background=bg_color)
-                        # 应用样式到单元格
+                        # 直接设置标签样式，不使用 style.configure
                         tree.tag_configure(color, background=bg_color)
                         tree.item(item_id, tags=(color,))
 
