@@ -57,8 +57,7 @@ class TopBar:
         self.week_var = tb.IntVar(value=getattr(self.app, 'current_week', 1))
         week_spinbox = tb.Spinbox(week_frame, from_=1, to=20, width=5,
                                 textvariable=self.week_var, 
-                                command=self.app.on_week_change,
-                                bootstyle=(PRIMARY, OUTLINE))
+                                command=self.app.on_week_change)
         week_spinbox.pack(side=LEFT, padx=5)
 
         # 视图切换区域
