@@ -14,7 +14,7 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("590x720")  # 调整窗口大小
+        self.dialog.geometry("590x750")  # 调整窗口大小
         self.dialog.resizable(False, False)
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
@@ -559,7 +559,7 @@ class EditSemesterDialog:
         """创建修改学期对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("修改学期")
-        self.dialog.geometry("500x430")
+        self.dialog.geometry("500x530")
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
 
