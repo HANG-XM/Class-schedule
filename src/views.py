@@ -3,6 +3,7 @@ from ttkbootstrap.constants import *
 from datetime import datetime, timedelta
 from logger_config import logger
 from dialogs import EditCourseDialog
+from course_manager import SpecialCourse
 class WeekView:
     def __init__(self, parent, app):
         self.parent = parent
@@ -102,14 +103,24 @@ class WeekView:
                         bg_color = color_map.get(color, color)
                         
                         # 创建唯一的标签名称
-                        tag_name = f"course_{color}_{item_id}"
+                        tag_name = f"course_{color}_{day_index}"
                         
                         # 配置标签样式
                         tree.tag_configure(tag_name, background=bg_color)
                         
-                        # 只对包含课程的单元格应用颜色
-                        tree.item(item_id, tags=(tag_name,))
-                        tree.set(item_id, self.app.days_of_week[day_index-1], course_text)
+                        # 获取当前行的所有标签
+                        current_tags = list(tree.item(item_id, "tags"))
+                        
+                        # 移除该列之前的标签（如果存在）
+                        old_tag = f"course_*_{day_index}"
+                        current_tags = [tag for tag in current_tags if not tag.endswith(f"_{day_index}")]
+                        
+                        # 添加新标签
+                        current_tags.append(tag_name)
+                        
+                        # 更新单元格值和标签
+                        current_values[day_index] = course_text
+                        tree.item(item_id, values=current_values, tags=tuple(current_tags))
 
             tree.pack(fill=BOTH, expand=True)
         except Exception as e:
@@ -388,7 +399,7 @@ class MonthView:
                     course_label = tb.Label(course_frame, 
                                         text=course[1][:6],
                                         font=("Helvetica", 8),
-                                        bootstyle=course[9])  # 使用正确的颜色索引
+                                        background=SpecialCourse.TYPES.get(course[10], {}).get("color", course[9]))
                     course_label.pack(fill=X, pady=1)
                 
                 # 如果课程数超过3，显示"+N"
