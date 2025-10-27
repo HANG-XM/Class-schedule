@@ -87,26 +87,13 @@ class WeekView:
                     tree.item(item_id, values=current_values)
                     
                     # 设置单元格颜色
-                    color = course[9]  # 获取课程颜色
+                    color = course[9]  # 直接使用十六进制颜色代码
                     if color:  # 确保颜色值存在
-                        # 定义颜色映射
-                        color_map = {
-                            "primary": "#007bff",
-                            "success": "#28a745",
-                            "warning": "#ffc107",
-                            "danger": "#dc3545",
-                            "info": "#17a2b8",
-                            "secondary": "#6c757d"
-                        }
-                        
-                        # 获取实际颜色值
-                        bg_color = color_map.get(color, color)
-                        
                         # 创建唯一的标签名称
                         tag_name = f"course_{color}_{day_index}"
                         
                         # 配置标签样式
-                        tree.tag_configure(tag_name, background=bg_color)
+                        tree.tag_configure(tag_name, background=color)
                         
                         # 获取当前行的所有标签
                         current_tags = list(tree.item(item_id, "tags"))

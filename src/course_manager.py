@@ -242,14 +242,14 @@ class CourseManager:
         return []
 class SpecialCourse:
     TYPES = {
-        "早签": {"color": "warning", "duration": 30},
-        "自习课": {"color": "info", "duration": 45},
-        "班会": {"color": "success", "duration": 60},
-        "实验课": {"color": "danger", "duration": 90},
-        "考试": {"color": "primary", "duration": 120},
-        "讲座": {"color": "secondary", "duration": 90},
-        "社团活动": {"color": "info", "duration": 120},
-        "运动会": {"color": "warning", "duration": 240}
+        "早签": {"color": "#ffc107", "duration": 30},
+        "自习课": {"color": "#17a2b8", "duration": 45},
+        "班会": {"color": "#28a745", "duration": 60},
+        "实验课": {"color": "#dc3545", "duration": 90},
+        "考试": {"color": "#007bff", "duration": 120},
+        "讲座": {"color": "#6c757d", "duration": 90},
+        "社团活动": {"color": "#17a2b8", "duration": 120},
+        "运动会": {"color": "#ffc107", "duration": 240}
     }
     
     @classmethod
