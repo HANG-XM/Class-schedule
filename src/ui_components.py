@@ -201,7 +201,7 @@ class TopBar:
 class StatsPanel:
     def __init__(self, parent, app):
         self.parent = parent
-        selfapp = app
+        self.app = app
         self.create_widgets()
 
     def create_widgets(self):
