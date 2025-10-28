@@ -323,7 +323,7 @@ class StatsPanel:
             course_week = ((current_date - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
             
             # 检查课程是否在月份范围内
-            return (int(c[4]) <= course_week <= int(c[5]) and 
+            return (int(course[4]) <= course_week <= int(course[5]) and 
                     first_day <= current_date <= last_day)
         except Exception as e:
             logger.error(f"判断课程月份失败: {str(e)}")
