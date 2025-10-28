@@ -204,14 +204,14 @@ class DayView:
             content = tb.Frame(self.frame)
             content.pack(fill=BOTH, expand=True, padx=20, pady=20)
 
-            tb.Label(content, text="日视图",
+            tb.Label(content, text=f"{datetime.now().strftime('%Y年%m月%d日')} 日视图",
                     font=("Helvetica", 24, "bold"),
                     bootstyle=PRIMARY).pack(pady=20)
 
             # 创建当天的课程列表
             current_day = datetime.now().weekday() + 1
             day_courses = [c for c in self.app.course_manager.get_courses_by_day(current_day, self.app.current_week)
-                        if c[11] == self.app.current_semester[0]]
+                        if str(c[12]) == str(self.app.current_semester[0])]
             
             logger.info(f"显示当天课程，共 {len(day_courses)} 门")
 
