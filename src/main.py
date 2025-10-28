@@ -128,7 +128,13 @@ class ModernCourseScheduleApp:
 
     def update_display(self):
         """更新显示"""
-        self.stats_panel.update_stats(self.courses, self.current_week, self.course_manager)
+        # 获取当前日期用于日视图和月视图
+        current_date = datetime.now()
+        if self.current_view == "month":
+            current_date = self.month_view.current_date
+        
+        self.stats_panel.update_stats(self.courses, self.current_week, 
+                                    self.course_manager, self.current_view, current_date)
 
         # 隐藏所有视图
         self.week_view.frame.pack_forget()
