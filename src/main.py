@@ -82,7 +82,7 @@ class ModernCourseScheduleApp:
         content_frame.pack(fill=BOTH, expand=True, pady=(10, 0))
 
         # 左侧统计面板
-        self.stats_panel = StatsPanel(content_frame)
+        self.stats_panel = StatsPanel(content_frame, self)
 
         # 右侧显示区域
         self.display_frame = tb.Frame(content_frame)

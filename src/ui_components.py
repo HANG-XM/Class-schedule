@@ -199,8 +199,9 @@ class TopBar:
         self.parent.wait_window(dialog.dialog)
         self._refresh_semester_list()
 class StatsPanel:
-    def __init__(self, parent):
+    def __init__(self, parent, app):
         self.parent = parent
+        selfapp = app
         self.create_widgets()
 
     def create_widgets(self):
