@@ -220,8 +220,17 @@ class DayView:
                     frame = tb.Frame(content, padding=10)
                     frame.pack(fill=X, pady=5)
 
-                    tb.Label(frame, text=f"{course[1]}",
-                            font=("Helvetica", 14)).pack(side=LEFT)
+                    # 左侧显示课程名称和地点
+                    left_frame = tb.Frame(frame)
+                    left_frame.pack(side=LEFT, fill=X, expand=True)
+                    
+                    tb.Label(left_frame, text=f"{course[1]}",
+                            font=("Helvetica", 14)).pack(anchor="w")
+                    tb.Label(left_frame, text=f"📍 {course[3]}",
+                            font=("Helvetica", 10),
+                            bootstyle=SECONDARY).pack(anchor="w")
+                    
+                    # 右侧显示时间
                     tb.Label(frame, text=f"{course[7]}-{course[8]}",
                             bootstyle=INFO).pack(side=RIGHT)
             else:
