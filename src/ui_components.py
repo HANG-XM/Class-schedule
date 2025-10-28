@@ -225,12 +225,21 @@ class StatsPanel:
 
             # 根据视图类型获取对应的课程
             if view_type == "day":
-                view_courses = [c for c in courses if int(c[6]) == current_date.weekday() + 1]
+                # 获取当天课程时需要同时考虑星期和周数
+                view_courses = [c for c in courses 
+                            if int(c[6]) == current_date.weekday() + 1 and
+                            int(c[4]) <= current_week <= int(c[5])]
                 title = "当日信息"
             elif view_type == "month":
                 year, month = current_date.year, current_date.month
+                # 获取月份的第一天和最后一天对应的周数
+                first_day = datetime(year, month, 1)
+                last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
+                start_week = ((first_day - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+                end_week = ((last_day - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+                
                 view_courses = [c for c in courses 
-                            if self._is_course_in_month(c, year, month, current_date)]
+                            if int(c[4]) <= end_week and int(c[5]) >= start_week]
                 title = "当月信息"
             else:  # week
                 view_courses = course_manager.get_courses_by_week(current_week)
