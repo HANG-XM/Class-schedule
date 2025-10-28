@@ -110,9 +110,14 @@ class WeekView:
                         tree.item(item_id, values=current_values, tags=tuple(current_tags))
 
             tree.pack(fill=BOTH, expand=True)
+
+            # 更新统计信息
+            self.app.stats_panel.update_stats(self.app.courses, self.app.current_week,
+                                            self.app.course_manager, "week")
         except Exception as e:
             logger.error(f"显示周视图失败: {str(e)}")
             raise
+
     def on_course_double_click(self, event):
         """处理表格双击事件"""
         try:
@@ -237,6 +242,10 @@ class DayView:
                 tb.Label(content, text="当天暂无课程",
                         font=("Helvetica", 14),
                         bootstyle=SECONDARY).pack(expand=True)
+
+            # 更新统计信息
+            self.app.stats_panel.update_stats(self.app.courses, self.app.current_week, 
+                                            self.app.course_manager, "day", datetime.now())
         except Exception as e:
             logger.error(f"显示日视图失败: {str(e)}")
             raise
@@ -318,11 +327,15 @@ class MonthView:
             self._update_month_label()
             month_courses = self._create_calendar_grid()  # 获取月份课程
             self._update_month_stats(month_courses)  # 传递月份课程参数
+
+            # 更新统计信息
+            self.app.stats_panel.update_stats(self.app.courses, self.app.current_week,
+                                            self.app.course_manager, "month", self.current_date)
+            
             logger.info(f"月视图更新完成，{self.current_date.year}年{self.current_date.month}月")
         except Exception as e:
             logger.error(f"更新月视图失败: {str(e)}")
             raise
-
     def _clear_calendar(self):
         """清空日历"""
         for widget in self.calendar_frame.winfo_children():

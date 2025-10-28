@@ -208,7 +208,7 @@ class StatsPanel:
         self.stats_frame.pack(side=LEFT, fill=Y, padx=(0, 15))
         self.stats_labels = {}
 
-    def update_stats(self, courses, current_week, course_manager):
+    def update_stats(self, courses, current_week, course_manager, view_type="week", current_date=None):
         """更新统计信息"""
         try:
             # 清空现有统计信息
@@ -221,28 +221,112 @@ class StatsPanel:
                         bootstyle=SECONDARY).pack(expand=True)
                 return
 
-            # 计算统计信息
-            stats = self._calculate_stats(courses, current_week, course_manager)
-            
-            # 创建总体信息部分
+            # 根据视图类型获取对应的课程
+            if view_type == "day":
+                view_courses = [c for c in courses if int(c[6]) == current_date.weekday() + 1]
+                title = "当日信息"
+            elif view_type == "month":
+                year, month = current_date.year, current_date.month
+                view_courses = [c for c in courses 
+                            if self._is_course_in_month(c, year, month, current_date)]
+                title = "当月信息"
+            else:  # week
+                view_courses = course_manager.get_courses_by_week(current_week)
+                title = "本周信息"
+
+            # 计算总体统计
             overall_frame = tb.LabelFrame(self.stats_frame, text="总体信息", padding=10)
             overall_frame.pack(fill=X, pady=5)
             
+            overall_stats = {
+                "total": {
+                    "text": "总课程数",
+                    "value": len(courses),
+                    "style": "primary"
+                },
+                "normal": {
+                    "text": "正常课程",
+                    "value": len([c for c in courses if not c[11]]),
+                    "style": "info"
+                },
+                "types": {
+                    "text": "课程种类",
+                    "value": len(set(c[1] for c in courses if not c[11])),
+                    "style": "success"
+                }
+            }
+
+            # 添加特殊课程统计
+            for course_type in SpecialCourse.TYPES:
+                overall_count = len([c for c in courses if c[10] == course_type])
+                if overall_count > 0:
+                    overall_stats[course_type] = {
+                        "text": course_type,
+                        "value": overall_count,
+                        "style": SpecialCourse.TYPES[course_type]["color"]
+                    }
+
             # 显示总体统计
-            for stat_type, stats_dict in stats['overall'].items():
+            for stat_type, stats_dict in overall_stats.items():
                 self._create_stat_widget(overall_frame, stat_type, stats_dict)
 
-            # 创建本周信息部分
-            week_frame = tb.LabelFrame(self.stats_frame, text="本周信息", padding=10)
-            week_frame.pack(fill=X, pady=5)
+            # 创建当前视图统计部分
+            view_frame = tb.LabelFrame(self.stats_frame, text=title, padding=10)
+            view_frame.pack(fill=X, pady=5)
             
-            # 显示本周统计
-            for stat_type, stats_dict in stats['weekly'].items():
-                self._create_stat_widget(week_frame, stat_type, stats_dict)
-                    
+            # 计算当前视图统计
+            view_stats = {
+                "total": {
+                    "text": f"{title[:-2]}课程",
+                    "value": len(view_courses),
+                    "style": "primary"
+                },
+                "normal": {
+                    "text": "正常课程",
+                    "value": len([c for c in view_courses if not c[11]]),
+                    "style": "info"
+                },
+                "types": {
+                    "text": "课程种类",
+                    "value": len(set(c[1] for c in view_courses if not c[11])),
+                    "style": "success"
+                }
+            }
+
+            # 添加特殊课程统计
+            for course_type in SpecialCourse.TYPES:
+                view_count = len([c for c in view_courses if c[10] == course_type])
+                if view_count > 0:
+                    view_stats[course_type] = {
+                        "text": course_type,
+                        "value": view_count,
+                        "style": SpecialCourse.TYPES[course_type]["color"]
+                    }
+
+            # 显示当前视图统计
+            for stat_type, stats_dict in view_stats.items():
+                self._create_stat_widget(view_frame, stat_type, stats_dict)
+                        
         except Exception as e:
             logger.error(f"更新统计信息失败: {str(e)}")
             raise
+
+    def _is_course_in_month(self, course, year, month, current_date):
+        """判断课程是否在指定月份内"""
+        try:
+            # 获取月份第一天和最后一天
+            first_day = datetime(year, month, 1)
+            last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
+            
+            # 计算当前日期对应的周数
+            course_week = ((current_date - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+            
+            # 检查课程是否在月份范围内
+            return (int(c[4]) <= course_week <= int(c[5]) and 
+                    first_day <= current_date <= last_day)
+        except Exception as e:
+            logger.error(f"判断课程月份失败: {str(e)}")
+            return False
 
     def _calculate_stats(self, courses, current_week, course_manager):
         """计算统计信息"""
