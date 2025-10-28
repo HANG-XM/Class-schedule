@@ -224,58 +224,101 @@ class StatsPanel:
             # 计算统计信息
             stats = self._calculate_stats(courses, current_week, course_manager)
             
-            # 创建统计信息显示
-            for stat_type, stats_dict in stats.items():
-                self._create_stat_widget(stat_type, stats_dict)
-                
+            # 创建总体信息部分
+            overall_frame = tb.LabelFrame(self.stats_frame, text="总体信息", padding=10)
+            overall_frame.pack(fill=X, pady=5)
+            
+            # 显示总体统计
+            for stat_type, stats_dict in stats['overall'].items():
+                self._create_stat_widget(overall_frame, stat_type, stats_dict)
+
+            # 创建本周信息部分
+            week_frame = tb.LabelFrame(self.stats_frame, text="本周信息", padding=10)
+            week_frame.pack(fill=X, pady=5)
+            
+            # 显示本周统计
+            for stat_type, stats_dict in stats['weekly'].items():
+                self._create_stat_widget(week_frame, stat_type, stats_dict)
+                    
         except Exception as e:
             logger.error(f"更新统计信息失败: {str(e)}")
             raise
 
     def _calculate_stats(self, courses, current_week, course_manager):
         """计算统计信息"""
+        # 获取本周课程
         week_courses = course_manager.get_courses_by_week(current_week)
         
-        # 计算各类特殊课程数量
-        special_stats = {}
-        for course_type in SpecialCourse.TYPES:
-            count = len([c for c in courses if c[10] == course_type])
-            if count > 0:
-                special_stats[course_type] = {
-                    "text": course_type,
-                    "value": count,
-                    "style": SpecialCourse.TYPES[course_type]["color"]
-                }
-        
-        # 基础统计信息
-        stats = {
+        # 计算总体统计
+        overall_stats = {
             "total": {
                 "text": "总课程数",
                 "value": len(courses),
                 "style": "primary"
             },
-            "weekly": {
-                "text": "本周课程",
-                "value": len(week_courses),
-                "style": "success"
-            },
             "normal": {
                 "text": "正常课程",
                 "value": len([c for c in courses if not c[11]]),
                 "style": "info"
+            },
+            "types": {
+                "text": "课程种类",
+                "value": len(set(c[1] for c in courses if not c[11])),
+                "style": "success"
+            }
+        }
+        
+        # 计算本周统计
+        weekly_stats = {
+            "total": {
+                "text": "本周课程",
+                "value": len(week_courses),
+                "style": "primary"
+            },
+            "normal": {
+                "text": "正常课程",
+                "value": len([c for c in week_courses if not c[11]]),
+                "style": "info"
+            },
+            "types": {
+                "text": "课程种类",
+                "value": len(set(c[1] for c in week_courses if not c[11])),
+                "style": "success"
             }
         }
         
         # 添加特殊课程统计
-        stats.update(special_stats)
-        return stats
-
-    def _create_stat_widget(self, stat_type, stats_dict):
-        """创建统计信息组件"""
-        frame = tb.Frame(self.stats_frame)
-        frame.pack(fill=X, pady=5)
+        for course_type in SpecialCourse.TYPES:
+            # 总体特殊课程统计
+            overall_count = len([c for c in courses if c[10] == course_type])
+            if overall_count > 0:
+                overall_stats[course_type] = {
+                    "text": course_type,
+                    "value": overall_count,
+                    "style": SpecialCourse.TYPES[course_type]["color"]
+                }
+            
+            # 本周特殊课程统计
+            week_count = len([c for c in week_courses if c[10] == course_type])
+            if week_count > 0:
+                weekly_stats[course_type] = {
+                    "text": course_type,
+                    "value": week_count,
+                    "style": SpecialCourse.TYPES[course_type]["color"]
+                }
         
-        tb.Label(frame, text=stats_dict["text"], font=("Helvetica", 10)).pack(side=LEFT)
+        return {
+            "overall": overall_stats,
+            "weekly": weekly_stats
+        }
+
+    def _create_stat_widget(self, parent, stat_type, stats_dict):
+        """创建统计信息组件"""
+        frame = tb.Frame(parent)
+        frame.pack(fill=X, pady=2)
+        
+        tb.Label(frame, text=stats_dict["text"], 
+                font=("Helvetica", 10)).pack(side=LEFT)
         tb.Label(frame, text=str(stats_dict["value"]), 
                 bootstyle=stats_dict["style"],
-                font=("Helvetica", 12, "bold")).pack(side=RIGHT)
+            font=("Helvetica", 12, "bold")).pack(side=RIGHT)
