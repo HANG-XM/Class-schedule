@@ -172,8 +172,12 @@ class AddCourseDialog:
         color_btn_frame.pack(side=LEFT, padx=(10, 0))
         
         colors = [
-            ("primary", "蓝"), ("success", "绿"), ("warning", "黄"),
-            ("danger", "红"), ("info", "青"), ("secondary", "灰")
+            ("#007bff", "蓝"),  # primary
+            ("#28a745", "绿"),  # success
+            ("#ffc107", "黄"),  # warning
+            ("#dc3545", "红"),  # danger
+            ("#17a2b8", "青"),  # info
+            ("#6c757d", "灰")   # secondary
         ]
         self.color_var = tb.StringVar(value=colors[0][0])
 
