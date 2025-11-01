@@ -285,25 +285,13 @@ class MonthView:
 
             tb.Button(nav_frame, text="◀", width=3,
                     command=self.previous_month).pack(side=LEFT, padx=5)
-            
+
             self.month_label = tb.Label(nav_frame, text="",
                                     font=("Helvetica", 16, "bold"))
             self.month_label.pack(side=LEFT, expand=True)
-            
+
             tb.Button(nav_frame, text="▶", width=3,
                     command=self.next_month).pack(side=LEFT, padx=5)
-
-            # 统计信息
-            stats_frame = tb.Frame(main_container)
-            stats_frame.pack(fill=X, pady=(0, 10))
-            
-            self.total_courses = tb.Label(stats_frame, text="",
-                                        font=("Helvetica", 12))
-            self.total_courses.pack(side=LEFT, padx=20)
-            
-            self.special_courses = tb.Label(stats_frame, text="",
-                                        font=("Helvetica", 12))
-            self.special_courses.pack(side=LEFT, padx=20)
 
             # 日历容器
             calendar_container = tb.Frame(main_container)
@@ -325,8 +313,7 @@ class MonthView:
         try:
             self._clear_calendar()
             self._update_month_label()
-            month_courses = self._create_calendar_grid()  # 获取月份课程
-            self._update_month_stats(month_courses)  # 传递月份课程参数
+            self._create_calendar_grid()  # 创建日历网格
 
             # 更新统计信息
             self.app.stats_panel.update_stats(self.app.courses, self.app.current_week,
@@ -351,9 +338,9 @@ class MonthView:
         week_days = ["一", "二", "三", "四", "五", "六", "日"]
         for day in week_days:
             tb.Label(self.calendar_frame, text=day, 
-                    font=("Helvetica", 10, "bold"),
-                    padding=10).grid(row=0, column=week_days.index(day),
-                                    sticky="nsew", padx=1, pady=1)
+                    font=("Helvetica", 9, "bold"),  # 减小字体
+                    padding=5).grid(row=0, column=week_days.index(day),
+                                    sticky="nsew", padx=1, pady=1)  # 减小内边距
 
         # 获取月份第一天和最后一天
         year = self.current_date.year
@@ -371,14 +358,20 @@ class MonthView:
         current_date = first_day
         week_num = 1
         month_courses = []
-        
+
         while current_date <= last_day:
+            # 创建固定大小的日期格子
             day_frame = tb.Frame(self.calendar_frame, relief="ridge", borderwidth=1)
             day_frame.grid(row=week_num, column=current_date.weekday(),
                         sticky="nsew", padx=1, pady=1)
+            
+            # 创建固定大小的内部容器
+            inner_frame = tb.Frame(day_frame, width=150, height=120)
+            inner_frame.pack(fill=BOTH, expand=True)
+            inner_frame.pack_propagate(False)  # 防止内部容器随内容缩放
 
             # 日期标签
-            date_label = tb.Label(day_frame, text=str(current_date.day),
+            date_label = tb.Label(inner_frame, text=str(current_date.day),
                                 font=("Helvetica", 12, "bold"),
                                 padding=5)
             date_label.pack(anchor="nw")
@@ -400,35 +393,40 @@ class MonthView:
 
             # 显示课程
             if day_courses:
-                course_frame = tb.Frame(day_frame)
-                course_frame.pack(fill=BOTH, expand=True, padx=5, pady=2)
+                # 创建固定大小的课程容器
+                course_frame = tb.Frame(inner_frame)
+                course_frame.pack(fill=BOTH, expand=True, padx=2, pady=2)
                 
-                # 最多显示3门课程
+                # 最多显示3门课程，统一显示格式
                 for i, course in enumerate(day_courses[:3]):
+                    # 限制课程名称长度为6个字符，使用固定宽度字体
+                    course_name = course[1][:6] + ".." if len(course[1]) > 6 else course[1]
                     course_label = tb.Label(course_frame, 
-                                        text=course[1][:6],
-                                        font=("Helvetica", 8),
-                                        background=SpecialCourse.TYPES.get(course[10], {}).get("color", course[9]))
-                    course_label.pack(fill=X, pady=1)
+                                        text=course_name,
+                                        font=("Courier", 8),  # 使用固定宽度字体
+                                        background=SpecialCourse.TYPES.get(course[10], {}).get("color", course[9]),
+                                        width=12)  # 固定标签宽度
+                    course_label.pack(fill=X, pady=1, ipady=2)  # 使用 ipady 控制内部垂直边距
                 
                 # 如果课程数超过3，显示"+N"
                 if len(day_courses) > 3:
                     more_label = tb.Label(course_frame,
                                         text=f"+{len(day_courses)-3}",
-                                        font=("Helvetica", 8),
-                                        bootstyle="info")
-                    more_label.pack(fill=X)
+                                        font=("Courier", 8),  # 使用固定宽度字体
+                                        bootstyle="info",
+                                        width=12)  # 固定标签宽度
+                    more_label.pack(fill=X, pady=1, ipady=2)  # 使用 ipady 控制内部垂直边距
 
             # 移动到下一天
             current_date += timedelta(days=1)
             if current_date.weekday() == 0:
                 week_num += 1
 
-        # 配置网格权重
+        # 配置网格权重，确保所有列等宽
         for i in range(7):
-            self.calendar_frame.columnconfigure(i, weight=1)
+            self.calendar_frame.columnconfigure(i, weight=1, minsize=120)  # 设置最小宽度
         for i in range(week_num + 1):
-            self.calendar_frame.rowconfigure(i, weight=1)
+            self.calendar_frame.rowconfigure(i, weight=1, minsize=100)  # 设置最小高度
 
         # 返回月份课程列表
         return month_courses
