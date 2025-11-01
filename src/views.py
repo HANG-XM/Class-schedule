@@ -184,6 +184,7 @@ class DayView:
     def __init__(self, parent, app):
         self.parent = parent
         self.app = app
+        self.current_date = datetime.now()
         self.create_widgets()
 
     def create_widgets(self):
@@ -205,16 +206,26 @@ class DayView:
             return
 
         # 使用目标日期或当前日期
-        self.current_date = target_date if target_date else datetime.now()
+        self.current_date = target_date if target_date else self.current_date
         
         try:
             # 创建日视图内容
             content = tb.Frame(self.frame)
             content.pack(fill=BOTH, expand=True, padx=20, pady=20)
 
-            tb.Label(content, text=f"{self.current_date.strftime('%Y年%m月%d日')} 日视图",
-                    font=("Helvetica", 24, "bold"),
-                    bootstyle=PRIMARY).pack(pady=20)
+            # 日期导航
+            nav_frame = tb.Frame(content)
+            nav_frame.pack(fill=X, pady=(0, 10))
+
+            tb.Button(nav_frame, text="◀", width=3,
+                    command=self.previous_day).pack(side=LEFT, padx=5)
+            
+            date_label = tb.Label(nav_frame, text=f"{self.current_date.strftime('%Y年%m月%d日')} 日视图",
+                                font=("Helvetica", 16, "bold"))
+            date_label.pack(side=LEFT, expand=True)
+            
+            tb.Button(nav_frame, text="▶", width=3,
+                    command=self.next_day).pack(side=LEFT, padx=5)
 
             # 创建当天的课程列表
             current_day = self.current_date.weekday() + 1
@@ -255,6 +266,21 @@ class DayView:
         except Exception as e:
             logger.error(f"显示日视图失败: {str(e)}")
             raise
+    def previous_day(self):
+        """切换到上一天"""
+        try:
+            self.current_date = self.current_date - timedelta(days=1)
+            self.show()
+        except Exception as e:
+            logger.error(f"切换上一天失败: {str(e)}")
+
+    def next_day(self):
+        """切换到下一天"""
+        try:
+            self.current_date = self.current_date + timedelta(days=1)
+            self.show()
+        except Exception as e:
+            logger.error(f"切换下一天失败: {str(e)}")        
 class MonthView:
     def __init__(self, parent, app):
         self.parent = parent
@@ -262,8 +288,9 @@ class MonthView:
         self.create_widgets()
 
     def create_widgets(self):
-        """创建月视图"""
+        """创建日视图"""
         self.frame = tb.Frame(self.parent)
+        self.current_date = datetime.now()  # 添加当前日期属性
         self.show()
 
     def show(self):
