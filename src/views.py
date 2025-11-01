@@ -191,7 +191,7 @@ class DayView:
         self.frame = tb.Frame(self.parent)
         self.show()
 
-    def show(self):
+    def show(self, target_date=None):
         """显示日视图"""
         # 清空现有内容
         for widget in self.frame.winfo_children():
@@ -204,20 +204,26 @@ class DayView:
                     bootstyle=WARNING).pack(expand=True)
             return
 
+        # 使用目标日期或当前日期
+        self.current_date = target_date if target_date else datetime.now()
+        
         try:
             # 创建日视图内容
             content = tb.Frame(self.frame)
             content.pack(fill=BOTH, expand=True, padx=20, pady=20)
 
-            tb.Label(content, text=f"{datetime.now().strftime('%Y年%m月%d日')} 日视图",
+            tb.Label(content, text=f"{self.current_date.strftime('%Y年%m月%d日')} 日视图",
                     font=("Helvetica", 24, "bold"),
                     bootstyle=PRIMARY).pack(pady=20)
 
             # 创建当天的课程列表
-            current_day = datetime.now().weekday() + 1
-            day_courses = [c for c in self.app.course_manager.get_courses_by_day(current_day, self.app.current_week)
+            current_day = self.current_date.weekday() + 1
+            current_week = ((self.current_date - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+            day_courses = [c for c in self.app.course_manager.get_courses_by_day(current_day, current_week)
                         if str(c[12]) == str(self.app.current_semester[0])]
             
+            logger.info(f"显示日期: {self.current_date.strftime('%Y年%m月%d日')}")
+            logger.info(f"对应周数: {current_week}")
             logger.info(f"显示当天课程，共 {len(day_courses)} 门")
 
             if day_courses:
@@ -244,12 +250,11 @@ class DayView:
                         bootstyle=SECONDARY).pack(expand=True)
 
             # 更新统计信息
-            self.app.stats_panel.update_stats(self.app.courses, self.app.current_week, 
-                                            self.app.course_manager, "day", datetime.now())
+            self.app.stats_panel.update_stats(self.app.courses, current_week, 
+                                            self.app.course_manager, "day", self.current_date)
         except Exception as e:
             logger.error(f"显示日视图失败: {str(e)}")
             raise
-
 class MonthView:
     def __init__(self, parent, app):
         self.parent = parent
@@ -354,7 +359,7 @@ class MonthView:
             tb.Frame(self.calendar_frame, relief="ridge", borderwidth=1).grid(
                 row=1, column=i, sticky="nsew", padx=1, pady=1)
 
-        # 添加日期格子
+        # 创建固定大小的日期格子
         current_date = first_day
         week_num = 1
         month_courses = []
@@ -366,14 +371,17 @@ class MonthView:
                         sticky="nsew", padx=1, pady=1)
             
             # 创建固定大小的内部容器
-            inner_frame = tb.Frame(day_frame, width=150, height=120)
+            inner_frame = tb.Frame(day_frame, width=120, height=100)
             inner_frame.pack(fill=BOTH, expand=True)
             inner_frame.pack_propagate(False)  # 防止内部容器随内容缩放
 
+            # 绑定双击事件
+            inner_frame.bind("<Double-Button-1>", lambda e, date=current_date: self.on_day_double_click(date))
+
             # 日期标签
             date_label = tb.Label(inner_frame, text=str(current_date.day),
-                                font=("Helvetica", 12, "bold"),
-                                padding=5)
+                                font=("Helvetica", 10, "bold"),
+                                padding=3)
             date_label.pack(anchor="nw")
 
             # 获取当前月份的周数范围
@@ -460,3 +468,18 @@ class MonthView:
             self.update_month_view()
         except Exception as e:
             logger.error(f"切换下个月失败: {str(e)}")
+    def on_day_double_click(self, date):
+        """处理日期双击事件，跳转到日视图"""
+        try:
+            # 计算目标日期对应的周数
+            target_week = ((date - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+            
+            # 切换到日视图
+            self.app.switch_view("day")
+            # 更新日视图显示的日期和周数
+            self.app.day_view.current_date = date
+            self.app.current_week = target_week
+            self.app.day_view.show(date)
+            logger.info(f"已跳转到 {date.strftime('%Y年%m月%d日')} 的日视图，第{target_week}周")
+        except Exception as e:
+            logger.error(f"跳转日视图失败: {str(e)}")
