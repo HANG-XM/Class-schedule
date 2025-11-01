@@ -232,15 +232,21 @@ class StatsPanel:
                 title = "当日信息"
             elif view_type == "month":
                 year, month = current_date.year, current_date.month
-                # 获取月份的第一天和最后一天对应的周数
+                # 获取月份的第一天和最后一天
                 first_day = datetime(year, month, 1)
                 last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
+                
+                # 计算月份的第一天和最后一天对应的周数
                 start_week = ((first_day - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
                 end_week = ((last_day - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
                 
-                view_courses = [c for c in courses 
-                            if int(c[4]) <= end_week and int(c[5]) >= start_week]
-                title = "当月信息"
+                # 获取该月份的所有课程
+                view_courses = []
+                for week in range(start_week, end_week + 1):
+                    week_courses = course_manager.get_courses_by_week(week)
+                    view_courses.extend([c for c in week_courses if str(c[12]) == str(self.app.current_semester[0])])
+                
+                title = f"{month}月信息"
             else:  # week
                 view_courses = course_manager.get_courses_by_week(current_week)
                 title = "本周信息"
