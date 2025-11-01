@@ -182,10 +182,18 @@ class AddCourseDialog:
         self.color_var = tb.StringVar(value=colors[0][0])
 
         for color, name in colors:
-            btn = tb.Button(color_btn_frame, text=name, bootstyle=color, 
+            btn = tb.Button(color_btn_frame, text=name, 
+                        bootstyle=INFO,  # 使用统一的INFO样式
                         command=lambda c=color: self.on_color_select(c),
-                        width=4)  # 将宽度从6改为4
-            btn.pack(side=LEFT, padx=1)  # 将间距从2改为1
+                        width=4)
+            btn.pack(side=LEFT, padx=1)
+            # 为每个按钮设置对应的背景色
+            btn.configure(style=f"Color.{color}.TButton")
+            # 创建并配置按钮样式
+            style = tb.Style()
+            style.configure(f"Color.{color}.TButton", 
+                        background=color,
+                        foreground='white' if color in ["#007bff", "#28a745", "#dc3545", "#17a2b8", "#6c757d"] else 'black')
 
     def create_day_section(self, parent):
         """创建星期选择部分"""
