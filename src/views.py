@@ -241,9 +241,10 @@ class DayView:
                 for course in day_courses:
                     frame = tb.Frame(content, padding=10, relief="raised", borderwidth=1)
                     frame.pack(fill=X, pady=5)
-                    
-                    # 使用 bootstyle 而不是 background
-                    frame.configure(bootstyle="light")
+                    # 创建一个带颜色的Label作为背景
+                    color_label = tb.Label(frame, background=course[9])
+                    color_label.place(x=0, y=0, relwidth=1, relheight=1)
+                    frame.lower(color_label)  # 确保颜色标签在最底层
                     
                     # 绑定双击事件到整个框架，使用正确的参数传递
                     frame.bind("<Double-Button-1>", lambda e, c=course: self.on_course_double_click(e, c))
