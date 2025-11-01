@@ -232,29 +232,46 @@ class DayView:
             current_week = ((self.current_date - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
             day_courses = [c for c in self.app.course_manager.get_courses_by_day(current_day, current_week)
                         if str(c[12]) == str(self.app.current_semester[0])]
-            
+
             logger.info(f"显示日期: {self.current_date.strftime('%Y年%m月%d日')}")
             logger.info(f"对应周数: {current_week}")
             logger.info(f"显示当天课程，共 {len(day_courses)} 门")
 
             if day_courses:
                 for course in day_courses:
-                    frame = tb.Frame(content, padding=10)
+                    frame = tb.Frame(content, padding=10, relief="raised", borderwidth=1)
                     frame.pack(fill=X, pady=5)
+                    
+                    # 使用 bootstyle 而不是 background
+                    frame.configure(bootstyle="light")
+                    
+                    # 绑定双击事件到整个框架，使用正确的参数传递
+                    frame.bind("<Double-Button-1>", lambda e, c=course: self.on_course_double_click(e, c))
+                    
+                    # 创建课程内容容器
+                    course_container = tb.Frame(frame)
+                    course_container.pack(fill=BOTH, expand=True, padx=5, pady=5)
+                    course_container.bind("<Double-Button-1>", lambda e, c=course: self.on_course_double_click(e, c))
 
                     # 左侧显示课程名称和地点
-                    left_frame = tb.Frame(frame)
+                    left_frame = tb.Frame(course_container)
                     left_frame.pack(side=LEFT, fill=X, expand=True)
+                    left_frame.bind("<Double-Button-1>", lambda e, c=course: self.on_course_double_click(e, c))
                     
-                    tb.Label(left_frame, text=f"{course[1]}",
-                            font=("Helvetica", 14)).pack(anchor="w")
+                    course_name_label = tb.Label(left_frame, text=f"{course[1]}",
+                            font=("Helvetica", 14))
+                    course_name_label.pack(anchor="w")
+                    course_name_label.bind("<Double-Button-1>", lambda e, c=course: self.on_course_double_click(e, c))
+                    
                     tb.Label(left_frame, text=f"📍 {course[3]}",
                             font=("Helvetica", 10),
                             bootstyle=SECONDARY).pack(anchor="w")
                     
                     # 右侧显示时间
-                    tb.Label(frame, text=f"{course[7]}-{course[8]}",
-                            bootstyle=INFO).pack(side=RIGHT)
+                    time_label = tb.Label(course_container, text=f"{course[7]}-{course[8]}",
+                            bootstyle=INFO)
+                    time_label.pack(side=RIGHT)
+                    time_label.bind("<Double-Button-1>", lambda e, c=course: self.on_course_double_click(e, c))
             else:
                 tb.Label(content, text="当天暂无课程",
                         font=("Helvetica", 14),
@@ -266,6 +283,20 @@ class DayView:
         except Exception as e:
             logger.error(f"显示日视图失败: {str(e)}")
             raise
+    def on_course_double_click(self, event, course):
+        """处理课程双击事件"""
+        try:
+            logger.info(f"双击课程: {course[1]}")
+            logger.info(f"课程详细信息: {course}")
+            
+            # 打开编辑对话框
+            from dialogs import EditCourseDialog
+            dialog = EditCourseDialog(self.parent, self.app, course)
+            logger.info(f"打开编辑对话框: {course[1]}")
+        except Exception as e:
+            logger.error(f"处理双击事件失败: {str(e)}")
+            import traceback
+            traceback.print_exc()
     def previous_day(self):
         """切换到上一天"""
         try:
