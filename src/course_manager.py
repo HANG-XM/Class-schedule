@@ -244,7 +244,7 @@ class CourseManager:
         """导出课程数据
         Args:
             courses: 要导出的课程列表
-            format: 导出格式 (excel, csv, json)
+            format: 导出格式 (excel, csv, json, pdf)
             filename: 导出文件名（可选）
         Returns:
             bool: 导出是否成功
@@ -260,6 +260,8 @@ class CourseManager:
                 return self._export_to_csv(courses, filename)
             elif format == "json":
                 return self._export_to_json(courses, filename)
+            elif format == "pdf":
+                return self._export_to_pdf(courses, filename)
             else:
                 raise ValueError(f"不支持的导出格式: {format}")
         except Exception as e:
@@ -341,7 +343,63 @@ class CourseManager:
         except Exception as e:
             logger.error(f"导出JSON失败: {str(e)}")
             return False
-
+    def _export_to_pdf(self, courses: List[Tuple], filename: str) -> bool:
+        """导出为PDF格式"""
+        try:
+            from reportlab.lib import colors
+            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+            from reportlab.lib.styles import getSampleStyleSheet
+            from reportlab.pdfbase import pdfmetrics
+            from reportlab.pdfbase.ttfonts import TTFont
+            
+            # 注册中文字体
+            try:
+                pdfmetrics.registerFont(TTFont('SimSun', 'SimSun.ttf'))
+            except:
+                logger.warning("未找到SimSun字体，使用默认字体")
+            
+            doc = SimpleDocTemplate(f"{filename}.pdf", pagesize=A4)
+            styles = getSampleStyleSheet()
+            story = []
+            
+            # 添加标题
+            title = Paragraph("课程表", styles['Title'])
+            story.append(title)
+            
+            # 准备表格数据
+            data = [["课程名称", "任课老师", "上课地点", "开始周数", "结束周数", 
+                    "星期", "上课时间", "课程类型"]]
+            for course in courses:
+                data.append([
+                    course[1], course[2], course[3], course[4], course[5],
+                    self._get_weekday(course[6]), f"{course[7]}-{course[8]}",
+                    course[10]
+                ])
+            
+            # 创建表格
+            table = Table(data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'SimSun-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 14),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('FONTNAME', (0, 1), (-1, -1), 'SimSun'),
+                ('FONTSIZE', (0, 1), (-1, -1), 12),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ]))
+            
+            story.append(table)
+            doc.build(story)
+            
+            logger.info(f"成功导出PDF文件: {filename}.pdf")
+            return True
+        except Exception as e:
+            logger.error(f"导出PDF失败: {str(e)}")
+            return False
     def _get_weekday(self, day: int) -> str:
         """将数字星期转换为文字"""
         weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]

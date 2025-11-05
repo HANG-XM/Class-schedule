@@ -218,7 +218,8 @@ class TopBar:
         formats = [
             ("Excel表格 (.xlsx)", "excel"),
             ("CSV文件 (.csv)", "csv"),
-            ("JSON文件 (.json)", "json")
+            ("JSON文件 (.json)", "json"),
+            ("PDF文件 (.pdf)", "pdf")
         ]
         
         for text, value in formats:
