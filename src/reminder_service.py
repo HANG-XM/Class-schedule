@@ -50,6 +50,10 @@ class ReminderService:
     def _should_remind(self, course, now, current_day):
         """判断是否应该触发提醒"""
         try:
+            # 检查数据长度
+            if len(course) < 16:  # 确保有足够的数据
+                logger.warning(f"课程数据不完整: {course}")
+                return False
             # 检查是否是今天的课程
             if int(course[6]) != current_day:
                 return False

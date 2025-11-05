@@ -141,7 +141,10 @@ class CourseManager:
                         c[9],  # color
                         c[10], # course_type
                         c[11], # is_special
-                        c[12]  # semester_id
+                        c[12],  # semester_id
+                        c[13],  # reminder_enabled
+                        c[14],  # reminder_minutes
+                        c[15]   # reminder_type
                     )
                     if self._is_valid_course(processed_course):
                         valid_courses.append(processed_course)
