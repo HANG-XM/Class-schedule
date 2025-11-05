@@ -118,9 +118,10 @@ class TopBar:
         buttons = [
             ("➕ 添加课程", self.app.show_add_course_dialog, SUCCESS),
             ("📅 新建学期", self.show_add_semester_dialog, PRIMARY),
-            ("✏️ 修改学期", self.show_edit_semester_dialog, INFO)
+            ("✏️ 修改学期", self.show_edit_semester_dialog, INFO),
+            ("📤 导出课程", self.show_export_dialog, WARNING)
         ]
-        
+
         for text, command, style in buttons:
             tb.Button(manage_frame, text=text, command=command,
                     bootstyle=(style, OUTLINE),
@@ -198,6 +199,69 @@ class TopBar:
         dialog = EditSemesterDialog(self.parent, self.app)
         self.parent.wait_window(dialog.dialog)
         self._refresh_semester_list()
+    def show_export_dialog(self):
+        """显示导出对话框"""
+        dialog = tb.Toplevel(self.parent)
+        dialog.title("导出课程")
+        dialog.geometry("400x300")
+        dialog.transient(self.parent)
+        dialog.grab_set()
+
+        main_frame = tb.Frame(dialog, padding=20)
+        main_frame.pack(fill=BOTH, expand=True)
+
+        # 导出格式选择
+        format_frame = tb.LabelFrame(main_frame, text="选择导出格式", padding=10)
+        format_frame.pack(fill=X, pady=10)
+
+        self.export_format = tb.StringVar(value="excel")
+        formats = [
+            ("Excel表格 (.xlsx)", "excel"),
+            ("CSV文件 (.csv)", "csv"),
+            ("JSON文件 (.json)", "json")
+        ]
+        
+        for text, value in formats:
+            tb.Radiobutton(format_frame, text=text, variable=self.export_format,
+                        value=value).pack(anchor="w", pady=2)
+
+        # 文件名输入
+        name_frame = tb.LabelFrame(main_frame, text="文件名（可选）", padding=10)
+        name_frame.pack(fill=X, pady=10)
+        
+        self.filename_entry = tb.Entry(name_frame)
+        self.filename_entry.pack(fill=X)
+
+        # 按钮
+        btn_frame = tb.Frame(main_frame)
+        btn_frame.pack(fill=X, pady=20)
+        
+        tb.Button(btn_frame, text="取消", command=dialog.destroy,
+                bootstyle=(SECONDARY, OUTLINE)).pack(side=RIGHT, padx=5)
+        tb.Button(btn_frame, text="导出", command=lambda: self.do_export(dialog),
+                bootstyle=SUCCESS).pack(side=RIGHT, padx=5)
+
+    def do_export(self, dialog):
+        """执行导出操作"""
+        try:
+            format = self.export_format.get()
+            filename = self.filename_entry.get().strip()
+            
+            # 获取当前显示的课程
+            courses = self.app.courses
+            if not courses:
+                messagebox.showwarning("提示", "没有可导出的课程")
+                return
+                
+            # 执行导出
+            if self.app.course_manager.export_courses(courses, format, filename):
+                messagebox.showinfo("成功", "课程导出成功！")
+                dialog.destroy()
+            else:
+                messagebox.showerror("错误", "课程导出失败")
+        except Exception as e:
+            logger.error(f"导出课程失败: {str(e)}")
+            messagebox.showerror("错误", f"导出失败: {str(e)}")
 class StatsPanel:
     def __init__(self, parent, app):
         self.parent = parent

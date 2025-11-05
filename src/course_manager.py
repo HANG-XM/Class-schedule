@@ -240,6 +240,112 @@ class CourseManager:
         elif search_type == "location":
             return [c for c in courses if keyword.lower() in c[3].lower()]
         return []
+    def export_courses(self, courses: List[Tuple], format: str = "excel", filename: str = None) -> bool:
+        """导出课程数据
+        Args:
+            courses: 要导出的课程列表
+            format: 导出格式 (excel, csv, json)
+            filename: 导出文件名（可选）
+        Returns:
+            bool: 导出是否成功
+        """
+        try:
+            if not filename:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename = f"courses_{timestamp}"
+                
+            if format == "excel":
+                return self._export_to_excel(courses, filename)
+            elif format == "csv":
+                return self._export_to_csv(courses, filename)
+            elif format == "json":
+                return self._export_to_json(courses, filename)
+            else:
+                raise ValueError(f"不支持的导出格式: {format}")
+        except Exception as e:
+            logger.error(f"导出课程失败: {str(e)}")
+            return False
+
+    def _export_to_excel(self, courses: List[Tuple], filename: str) -> bool:
+        """导出为Excel格式"""
+        try:
+            import pandas as pd
+            
+            # 转换数据格式
+            df_data = []
+            for course in courses:
+                df_data.append({
+                    "课程名称": course[1],
+                    "任课老师": course[2],
+                    "上课地点": course[3],
+                    "开始周数": course[4],
+                    "结束周数": course[5],
+                    "星期": self._get_weekday(course[6]),
+                    "上课时间": f"{course[7]}-{course[8]}",
+                    "课程类型": course[10],
+                    "学期": course[12]
+                })
+            
+            df = pd.DataFrame(df_data)
+            df.to_excel(f"{filename}.xlsx", index=False)
+            logger.info(f"成功导出Excel文件: {filename}.xlsx")
+            return True
+        except Exception as e:
+            logger.error(f"导出Excel失败: {str(e)}")
+            return False
+
+    def _export_to_csv(self, courses: List[Tuple], filename: str) -> bool:
+        """导出为CSV格式"""
+        try:
+            import csv
+            
+            with open(f"{filename}.csv", 'w', newline='', encoding='utf-8-sig') as f:
+                writer = csv.writer(f)
+                writer.writerow(["课程名称", "任课老师", "上课地点", "开始周数", "结束周数", 
+                            "星期", "上课时间", "课程类型", "学期"])
+                for course in courses:
+                    writer.writerow([
+                        course[1], course[2], course[3], course[4], course[5],
+                        self._get_weekday(course[6]), f"{course[7]}-{course[8]}",
+                        course[10], course[12]
+                    ])
+            logger.info(f"成功导出CSV文件: {filename}.csv")
+            return True
+        except Exception as e:
+            logger.error(f"导出CSV失败: {str(e)}")
+            return False
+
+    def _export_to_json(self, courses: List[Tuple], filename: str) -> bool:
+        """导出为JSON格式"""
+        try:
+            import json
+            
+            data = []
+            for course in courses:
+                data.append({
+                    "name": course[1],
+                    "teacher": course[2],
+                    "location": course[3],
+                    "start_week": course[4],
+                    "end_week": course[5],
+                    "day_of_week": self._get_weekday(course[6]),
+                    "time": f"{course[7]}-{course[8]}",
+                    "course_type": course[10],
+                    "semester": course[12]
+                })
+            
+            with open(f"{filename}.json", 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            logger.info(f"成功导出JSON文件: {filename}.json")
+            return True
+        except Exception as e:
+            logger.error(f"导出JSON失败: {str(e)}")
+            return False
+
+    def _get_weekday(self, day: int) -> str:
+        """将数字星期转换为文字"""
+        weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+        return weekdays[day - 1] if 1 <= day <= 7 else "未知"
 class SpecialCourse:
     TYPES = {
         "早签": {"color": "#ffc107", "duration": 30},
