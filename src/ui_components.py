@@ -17,8 +17,12 @@ class TopBar:
         top_frame = tb.Frame(self.parent, bootstyle=PRIMARY)
         top_frame.pack(fill=X, pady=(0, 10))
         
+        # 添加阴影效果
+        shadow = tb.Frame(self.parent, height=2, bootstyle=SECONDARY)
+        shadow.pack(fill=X, pady=(0, 5))
+        
         # 创建内层容器，添加边距和圆角
-        inner_frame = tb.Frame(top_frame, padding=10)
+        inner_frame = tb.Frame(top_frame, padding=15)
         inner_frame.pack(fill=X, expand=True)
 
         # 创建控制面板容器
@@ -204,7 +208,7 @@ class TopBar:
         """显示导出对话框"""
         dialog = tb.Toplevel(self.parent)
         dialog.title("导出课程")
-        dialog.geometry("400x300")
+        dialog.geometry("400x420")
         dialog.transient(self.parent)
         dialog.grab_set()
 

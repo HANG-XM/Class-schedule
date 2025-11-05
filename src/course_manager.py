@@ -2,6 +2,7 @@ import sqlite3
 from datetime import datetime
 from typing import List, Tuple
 from logger_config import logger
+import re
 class CourseManager:
     def __init__(self):
         self.init_database()
@@ -484,6 +485,30 @@ class CourseManager:
         """将数字星期转换为文字"""
         weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         return weekdays[day - 1] if 1 <= day <= 7 else "未知"
+    def _is_valid_course(self, course: Tuple) -> bool:
+        """验证课程数据是否有效"""
+        try:
+            # 检查必要字段
+            required_fields = [
+                course[1],  # name
+                course[2],  # teacher
+                course[3],  # location
+            ]
+            
+            # 验证数据格式
+            if not all(required_fields):
+                logger.warning("课程信息不完整")
+                return False
+                
+            # 验证时间格式
+            if not re.match(r'^\d{2}:\d{2}$', course[7]) or not re.match(r'^\d{2}:\d{2}$', course[8]):
+                logger.warning("时间格式不正确")
+                return False
+                
+            return True
+        except Exception as e:
+            logger.error(f"课程数据验证失败: {str(e)}")
+            return False
 class SpecialCourse:
     TYPES = {
         "早签": {"color": "#ffc107", "duration": 30},

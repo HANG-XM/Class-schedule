@@ -39,7 +39,21 @@ class WeekView:
             # 创建表格
             columns = ["时间"] + self.app.days_of_week
             tree = tb.Treeview(self.frame, columns=columns, show="tree headings", height=22)
-            
+            # 在这里添加表格样式设置
+            style = tb.Style()
+            style.configure("Treeview", 
+                rowheight=100,
+                background="#ffffff",
+                fieldbackground="#ffffff",
+                borderwidth=0)
+            style.configure("Treeview.Heading", 
+                font=("Helvetica", 12, "bold"),
+                background="#f8f9fa",
+                foreground="#495057")
+            style.map("Treeview",
+                background=[('selected', "#e3f2fd")])
+
+            tree.configure(style="Treeview")            
             # 绑定双击事件
             tree.bind("<Double-Button-1>", self.on_course_double_click)
 

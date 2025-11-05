@@ -195,7 +195,30 @@ class ModernCourseScheduleApp:
         logger.info(f"实际使用的周数: {current_week}")
         
         return current_week
-
+    def switch_view(self, view):
+        """切换视图"""
+        if self.current_view == view:
+            return
+            
+        self.current_view = view
+        
+        # 隐藏所有视图
+        self.week_view.frame.pack_forget()
+        self.day_view.frame.pack_forget()
+        self.month_view.frame.pack_forget()
+        
+        # 显示当前视图
+        if view == "week":
+            self.week_view.show()
+            self.week_view.frame.pack(fill=BOTH, expand=True)
+        elif view == "day":
+            self.day_view.show()
+            self.day_view.frame.pack(fill=BOTH, expand=True)
+        else:  # month
+            self.month_view.show()
+            self.month_view.frame.pack(fill=BOTH, expand=True)
+        
+        logger.info(f"视图已切换到: {view}")
     def run(self):
         """运行应用"""
         self.root.mainloop()

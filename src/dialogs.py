@@ -14,10 +14,14 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("590x750")  # 调整窗口大小
+        self.dialog.geometry("600x780")
         self.dialog.resizable(False, False)
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
+        
+        # 设置窗口样式
+        self.dialog.tk_setPalette(background="#ffffff")
+        self.dialog.configure(bg="#ffffff")
 
         # 创建主容器
         main_frame = tb.Frame(self.dialog, padding=10)
@@ -723,7 +727,7 @@ class ShareDialog:
         """创建分享对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("分享课程")
-        self.dialog.geometry("400x300")
+        self.dialog.geometry("400x480")
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
 
