@@ -35,6 +35,9 @@ class CourseManager:
                         course_type TEXT NOT NULL,
                         is_special INTEGER NOT NULL,
                         semester_id INTEGER NOT NULL,
+                        reminder_enabled INTEGER DEFAULT 0,
+                        reminder_minutes INTEGER DEFAULT 15,
+                        reminder_type TEXT DEFAULT 'popup',
                         FOREIGN KEY (semester_id) REFERENCES semesters (id)
                     );
                 ''')

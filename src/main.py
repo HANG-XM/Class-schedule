@@ -4,6 +4,7 @@ from datetime import datetime
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from course_manager import CourseManager, SpecialCourse
+from reminder_service import ReminderService
 from ui_components import TopBar, StatsPanel
 from views import WeekView, DayView, MonthView
 from dialogs import AddCourseDialog
@@ -23,6 +24,8 @@ class ModernCourseScheduleApp:
         self.init_semesters()
         # 设置默认周数
         self.current_week = 1
+        # 初始化提醒服务
+        self.reminder_service = ReminderService(self.course_manager)
         # 最后设置UI
         self.setup_ui()
         self._post_init()
@@ -221,7 +224,13 @@ class ModernCourseScheduleApp:
         logger.info(f"视图已切换到: {view}")
     def run(self):
         """运行应用"""
-        self.root.mainloop()
+        # 启动提醒服务
+        self.reminder_service.start()
+        try:
+            self.root.mainloop()
+        finally:
+            # 确保在退出时停止提醒服务
+            self.reminder_service.stop()
 
 if __name__ == "__main__":
     app = ModernCourseScheduleApp()

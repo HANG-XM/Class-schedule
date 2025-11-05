@@ -14,7 +14,7 @@ class AddCourseDialog:
         """创建添加课程对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("添加课程")
-        self.dialog.geometry("600x780")
+        self.dialog.geometry("600x900")
         self.dialog.resizable(False, False)
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
@@ -46,6 +46,41 @@ class AddCourseDialog:
         
         # 星期设置
         self.create_day_section(parent)
+        
+        # 提醒设置
+        self.create_reminder_section(parent)
+
+    def create_reminder_section(self, parent):
+        """创建提醒设置部分"""
+        section_frame = tb.LabelFrame(parent, text="提醒设置", padding=10)
+        section_frame.pack(fill=X, pady=5)
+
+        # 启用提醒
+        self.reminder_enabled = tb.BooleanVar(value=False)
+        tb.Checkbutton(section_frame, text="启用上课提醒", 
+                    variable=self.reminder_enabled).pack(anchor="w", pady=(0, 5))
+
+        # 提醒时间设置
+        reminder_frame = tb.Frame(section_frame)
+        reminder_frame.pack(fill=X, pady=(0, 5))
+        
+        tb.Label(reminder_frame, text="提前提醒时间:").pack(side=LEFT)
+        self.reminder_minutes = tb.Spinbox(reminder_frame, from_=5, to=60, 
+                                        increment=5, width=10)
+        self.reminder_minutes.set(15)
+        self.reminder_minutes.pack(side=LEFT, padx=5)
+        tb.Label(reminder_frame, text="分钟").pack(side=LEFT)
+
+        # 提醒方式
+        type_frame = tb.Frame(section_frame)
+        type_frame.pack(fill=X)
+        
+        tb.Label(type_frame, text="提醒方式:").pack(side=LEFT)
+        self.reminder_type = tb.StringVar(value="popup")
+        types = [("弹窗提醒", "popup"), ("声音提醒", "sound"), ("两者都有", "both")]
+        for text, value in types:
+            tb.Radiobutton(type_frame, text=text, variable=self.reminder_type,
+                        value=value).pack(side=LEFT, padx=5)
 
     def create_basic_info_section(self, parent):
         """创建基本信息部分"""
