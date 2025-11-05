@@ -713,3 +713,97 @@ class EditSemesterDialog:
             messagebox.showerror("错误", str(ve))
         except Exception as e:
             messagebox.showerror("错误", f"修改学期失败: {str(e)}")
+class ShareDialog:
+    def __init__(self, parent, app):
+        self.parent = parent
+        self.app = app
+        self.create_dialog()
+
+    def create_dialog(self):
+        """创建分享对话框"""
+        self.dialog = tb.Toplevel(self.parent)
+        self.dialog.title("分享课程")
+        self.dialog.geometry("400x300")
+        self.dialog.transient(self.parent)
+        self.dialog.grab_set()
+
+        main_frame = tb.Frame(self.dialog, padding=20)
+        main_frame.pack(fill=BOTH, expand=True)
+
+        # 分享类型选择
+        type_frame = tb.LabelFrame(main_frame, text="分享类型", padding=10)
+        type_frame.pack(fill=X, pady=10)
+
+        self.share_type = tb.StringVar(value="week")
+        types = [
+            ("周课程表", "week"),
+            ("单日课程", "day")
+        ]
+        
+        for text, value in types:
+            tb.Radiobutton(type_frame, text=text, variable=self.share_type,
+                        value=value).pack(anchor="w", pady=2)
+
+        # 导出格式选择
+        format_frame = tb.LabelFrame(main_frame, text="导出格式", padding=10)
+        format_frame.pack(fill=X, pady=10)
+
+        self.export_format = tb.StringVar(value="image")
+        formats = [
+            ("图片 (.png)", "image"),
+            ("PDF文件 (.pdf)", "pdf")
+        ]
+        
+        for text, value in formats:
+            tb.Radiobutton(format_frame, text=text, variable=self.export_format,
+                        value=value).pack(anchor="w", pady=2)
+
+        # 文件名输入
+        name_frame = tb.LabelFrame(main_frame, text="文件名（可选）", padding=10)
+        name_frame.pack(fill=X, pady=10)
+        
+        self.filename_entry = tb.Entry(name_frame)
+        self.filename_entry.pack(fill=X)
+
+        # 按钮
+        btn_frame = tb.Frame(main_frame)
+        btn_frame.pack(fill=X, pady=20)
+        
+        tb.Button(btn_frame, text="取消", command=self.dialog.destroy,
+                bootstyle=(SECONDARY, OUTLINE)).pack(side=RIGHT, padx=5)
+        tb.Button(btn_frame, text="分享", command=self.do_share,
+                bootstyle=SUCCESS).pack(side=RIGHT, padx=5)
+
+    def do_share(self):
+        """执行分享操作"""
+        try:
+            share_type = self.share_type.get()
+            export_format = self.export_format.get()
+            filename = self.filename_entry.get().strip()
+            
+            # 获取当前显示的课程
+            if share_type == "week":
+                courses = self.app.course_manager.get_courses_by_week(self.app.current_week)
+                target_date = None
+            else:
+                current_date = datetime.now()
+                if self.app.current_view == "month":
+                    current_date = self.app.month_view.current_date
+                day = current_date.weekday() + 1
+                week = ((current_date - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+                courses = self.app.course_manager.get_courses_by_day(day, week)
+                target_date = current_date
+            
+            if not courses:
+                messagebox.showwarning("提示", "没有可分享的课程")
+                return
+                
+            # 执行导出
+            if self.app.course_manager.export_courses(courses, export_format, filename, share_type, target_date):
+                messagebox.showinfo("成功", "课程分享成功！")
+                self.dialog.destroy()
+            else:
+                messagebox.showerror("错误", "课程分享失败")
+        except Exception as e:
+            logger.error(f"分享课程失败: {str(e)}")
+            messagebox.showerror("错误", f"分享失败: {str(e)}")

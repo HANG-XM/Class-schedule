@@ -119,7 +119,8 @@ class TopBar:
             ("➕ 添加课程", self.app.show_add_course_dialog, SUCCESS),
             ("📅 新建学期", self.show_add_semester_dialog, PRIMARY),
             ("✏️ 修改学期", self.show_edit_semester_dialog, INFO),
-            ("📤 导出课程", self.show_export_dialog, WARNING)
+            ("📤 导出课程", self.show_export_dialog, WARNING),
+            ("🔗 分享课程", self.show_share_dialog, INFO)
         ]
 
         for text, command, style in buttons:
@@ -263,6 +264,10 @@ class TopBar:
         except Exception as e:
             logger.error(f"导出课程失败: {str(e)}")
             messagebox.showerror("错误", f"导出失败: {str(e)}")
+    def show_share_dialog(self):
+        """显示分享对话框"""
+        from dialogs import ShareDialog
+        ShareDialog(self.parent, self.app)
 class StatsPanel:
     def __init__(self, parent, app):
         self.parent = parent

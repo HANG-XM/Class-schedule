@@ -240,15 +240,8 @@ class CourseManager:
         elif search_type == "location":
             return [c for c in courses if keyword.lower() in c[3].lower()]
         return []
-    def export_courses(self, courses: List[Tuple], format: str = "excel", filename: str = None) -> bool:
-        """导出课程数据
-        Args:
-            courses: 要导出的课程列表
-            format: 导出格式 (excel, csv, json, pdf)
-            filename: 导出文件名（可选）
-        Returns:
-            bool: 导出是否成功
-        """
+    def export_courses(self, courses: List[Tuple], format: str = "excel", filename: str = None, view_type: str = "week", target_date: datetime = None) -> bool:
+        """导出课程数据"""
         try:
             if not filename:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -262,6 +255,8 @@ class CourseManager:
                 return self._export_to_json(courses, filename)
             elif format == "pdf":
                 return self._export_to_pdf(courses, filename)
+            elif format == "image":
+                return self._export_to_image(courses, filename, view_type, target_date)
             else:
                 raise ValueError(f"不支持的导出格式: {format}")
         except Exception as e:
@@ -399,6 +394,91 @@ class CourseManager:
             return True
         except Exception as e:
             logger.error(f"导出PDF失败: {str(e)}")
+            return False
+    def _export_to_image(self, courses: List[Tuple], filename: str, view_type: str = "week", target_date: datetime = None) -> bool:
+        """导出为图片格式"""
+        try:
+            from PIL import Image, ImageDraw, ImageFont
+            import os
+            
+            # 创建图片
+            width, height = 1200, 800
+            image = Image.new('RGB', (width, height), color='white')
+            draw = ImageDraw.Draw(image)
+            
+            # 尝试使用中文字体
+            try:
+                font_title = ImageFont.truetype("SimSun.ttf", 24)
+                font_content = ImageFont.truetype("SimSun.ttf", 16)
+            except:
+                font_title = ImageFont.load_default()
+                font_content = ImageFont.load_default()
+            
+            # 绘制标题
+            title = "课程表" if view_type == "week" else f"{target_date.strftime('%Y年%m月%d日')}课程安排"
+            draw.text((width//2 - 100, 20), title, fill='black', font=font_title)
+            
+            # 绘制表格
+            if view_type == "week":
+                # 周视图布局
+                start_y = 80
+                cell_height = 100
+                cell_width = 150
+                
+                # 绘制表头
+                headers = ["时间"] + ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+                for i, header in enumerate(headers):
+                    x = i * cell_width
+                    draw.rectangle([x, start_y, x + cell_width, start_y + 40], outline='black')
+                    draw.text((x + 10, start_y + 10), header, fill='black', font=font_content)
+                
+                # 绘制时间行和课程
+                time_slots = [
+                    ("07:35", "07:45"), ("08:00", "09:40"), ("10:00", "11:40"),
+                    ("14:00", "15:40"), ("16:00", "17:40"), ("19:00", "20:40")
+                ]
+                
+                for i, (start, end) in enumerate(time_slots):
+                    y = start_y + 40 + i * cell_height
+                    # 绘制时间列
+                    draw.rectangle([0, y, cell_width, y + cell_height], outline='black')
+                    draw.text((10, y + 40), f"{start}\n{end}", fill='black', font=font_content)
+                    
+                    # 绘制课程
+                    for j in range(7):
+                        x = (j + 1) * cell_width
+                        draw.rectangle([x, y, x + cell_width, y + cell_height], outline='black')
+                        
+                        # 查找对应课程
+                        for course in courses:
+                            if (course[6] == j + 1 and  # 星期几
+                                course[7] == start and course[8] == end):  # 时间匹配
+                                # 绘制课程信息
+                                text = f"{course[1]}\n{course[3]}\n{course[2]}"
+                                draw.text((x + 10, y + 10), text, fill='black', font=font_content)
+                                break
+            else:
+                # 日视图布局
+                start_y = 80
+                cell_height = 80
+                current_day = target_date.weekday() + 1
+                
+                # 筛选当天课程
+                day_courses = [c for c in courses if int(c[6]) == current_day]
+                
+                # 绘制课程列表
+                for i, course in enumerate(day_courses):
+                    y = start_y + i * cell_height
+                    draw.rectangle([50, y, width - 50, y + cell_height], outline='black')
+                    text = f"{course[1]} - {course[2]}\n地点：{course[3]}\n时间：{course[7]}-{course[8]}"
+                    draw.text((60, y + 10), text, fill='black', font=font_content)
+            
+            # 保存图片
+            image.save(f"{filename}.png")
+            logger.info(f"成功导出图片文件: {filename}.png")
+            return True
+        except Exception as e:
+            logger.error(f"导出图片失败: {str(e)}")
             return False
     def _get_weekday(self, day: int) -> str:
         """将数字星期转换为文字"""
