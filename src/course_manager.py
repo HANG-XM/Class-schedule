@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import datetime
+from datetime import datetime,timedelta
 from typing import List, Tuple
 from logger_config import logger
 import re
@@ -515,6 +515,123 @@ class CourseManager:
         except Exception as e:
             logger.error(f"课程数据验证失败: {str(e)}")
             return False
+    def get_free_time_slots(self, day: int, week: int) -> List[Tuple]:
+        """获取指定日期的空闲时间段"""
+        try:
+            # 获取当天的课程
+            day_courses = self.get_courses_by_day(day, week)
+            
+            # 获取所有时间段
+            time_slots = [
+                ("07:35", "07:45"), ("08:00", "09:40"), ("10:00", "11:40"),
+                ("14:00", "15:40"), ("16:00", "17:40"), ("19:00", "20:40")
+            ]
+            
+            # 找出已被占用的时间段
+            occupied_slots = []
+            for course in day_courses:
+                start_time = course[7]
+                end_time = course[8]
+                occupied_slots.append((start_time, end_time))
+            
+            # 找出空闲时间段
+            free_slots = []
+            for slot in time_slots:
+                if slot not in occupied_slots:
+                    free_slots.append(slot)
+            
+            return free_slots
+        except Exception as e:
+            logger.error(f"获取空闲时间失败: {str(e)}")
+            return []
+    def get_week_free_time_slots(self, week: int) -> dict:
+        """获取一周的空闲时间段"""
+        try:
+            week_free_slots = {}
+            for day in range(1, 8):  # 1-7 代表周一到周日
+                day_free_slots = self.get_free_time_slots(day, week)
+                week_free_slots[day] = day_free_slots
+            return week_free_slots
+        except Exception as e:
+            logger.error(f"获取周空闲时间失败: {str(e)}")
+            return {}
+
+    def get_month_free_time_slots(self, year: int, month: int) -> dict:
+        """获取月份的空闲时间段统计"""
+        try:
+            month_free_stats = {
+                'total_free_time': 0.0,
+                'total_occupied_time': 0.0,
+                'days': {}
+            }
+            
+            # 获取当前学期
+            current_semester = self.get_current_semester()
+            if not current_semester:
+                return month_free_stats
+                
+            # 获取月份的第一天和最后一天
+            first_day = datetime(year, month, 1)
+            last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
+            
+            # 计算月份的第一天和最后一天对应的周数
+            start_week = ((first_day - datetime.strptime(current_semester[2], "%Y-%m-%d")).days // 7) + 1
+            end_week = ((last_day - datetime.strptime(current_semester[2], "%Y-%m-%d")).days // 7) + 1
+            
+            # 定义所有时间段
+            all_time_slots = [
+                ("07:35", "07:45"), ("08:00", "09:40"), ("10:00", "11:40"),
+                ("14:00", "15:40"), ("16:00", "17:40"), ("19:00", "20:40")
+            ]
+            
+            # 计算每天的总时间
+            daily_total_time = sum(self._calculate_duration(start, end) for start, end in all_time_slots)
+            
+            # 遍历月份中的每一天
+            current_day = first_day
+            while current_day <= last_day:
+                day_of_week = current_day.weekday() + 1
+                week_num = ((current_day - datetime.strptime(current_semester[2], "%Y-%m-%d")).days // 7) + 1
+                
+                # 获取当天的空闲时间
+                free_slots = self.get_free_time_slots(day_of_week, week_num)
+                # 使用 _calculate_duration 方法计算每个时间段的时长
+                day_free_time = sum(self._calculate_duration(start, end) for start, end in free_slots)
+                
+                # 更新统计信息
+                month_free_stats['total_free_time'] += day_free_time
+                month_free_stats['total_occupied_time'] += (daily_total_time - day_free_time)
+                month_free_stats['days'][current_day.day] = {
+                    'free_time': day_free_time,
+                    'free_slots': free_slots
+                }
+                
+                current_day += timedelta(days=1)
+            
+            # 最后对总时间进行一次舍入
+            month_free_stats['total_free_time'] = round(month_free_stats['total_free_time'], 1)
+            month_free_stats['total_occupied_time'] = round(month_free_stats['total_occupied_time'], 1)
+                
+            return month_free_stats
+        except Exception as e:
+            logger.error(f"获取月空闲时间失败: {str(e)}")
+            return {
+                'total_free_time': 0.0,
+                'total_occupied_time': 0.0,
+                'days': {}
+            }
+    def _calculate_duration(self, start_time: str, end_time: str) -> float:
+        """计算时间段长度（小时）"""
+        try:
+            start = datetime.strptime(start_time, "%H:%M")
+            end = datetime.strptime(end_time, "%H:%M")
+            # 先计算分钟数，再转换为小时，避免浮点数精度问题
+            minutes = int((end - start).total_seconds() / 60)
+            hours = minutes / 60
+            return round(hours, 1)  # 转换为小时并保留一位小数
+        except Exception as e:
+            logger.error(f"计算时间段长度失败: {str(e)}")
+            return 0.0
 class SpecialCourse:
     TYPES = {
         "早签": {"color": "#ffc107", "duration": 30},
