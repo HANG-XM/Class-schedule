@@ -351,22 +351,42 @@ class CourseManager:
             from reportlab.lib import colors
             from reportlab.lib.pagesizes import letter, A4
             from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
-            from reportlab.lib.styles import getSampleStyleSheet
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.pdfbase import pdfmetrics
             from reportlab.pdfbase.ttfonts import TTFont
+            import os
             
             # 注册中文字体
+            font_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'fonts', 'simsun.ttc')
             try:
-                pdfmetrics.registerFont(TTFont('SimSun', 'SimSun.ttf'))
+                pdfmetrics.registerFont(TTFont('SimSun', font_path))
+                font_name = 'SimSun'
             except:
-                logger.warning("未找到SimSun字体，使用默认字体")
+                try:
+                    # 尝试使用系统字体
+                    pdfmetrics.registerFont(TTFont('SimSun', 'C:/Windows/Fonts/simsun.ttc'))
+                    font_name = 'SimSun'
+                except:
+                    logger.warning("未找到中文字体，使用默认字体")
+                    font_name = 'Helvetica'
             
             doc = SimpleDocTemplate(f"{filename}.pdf", pagesize=A4)
             styles = getSampleStyleSheet()
+            
+            # 创建中文字体样式
+            styles.add(ParagraphStyle(name='ChineseTitle',
+                                    parent=styles['Title'],
+                                    fontName=font_name,
+                                    fontSize=16))
+            styles.add(ParagraphStyle(name='ChineseNormal',
+                                    parent=styles['Normal'],
+                                    fontName=font_name,
+                                    fontSize=10))
+            
             story = []
             
             # 添加标题
-            title = Paragraph("课程表", styles['Title'])
+            title = Paragraph("课程表", styles['ChineseTitle'])
             story.append(title)
             
             # 准备表格数据
@@ -385,12 +405,12 @@ class CourseManager:
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'SimSun-Bold'),
+                ('FONTNAME', (0, 0), (-1, 0), font_name),
                 ('FONTSIZE', (0, 0), (-1, 0), 14),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
                 ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('FONTNAME', (0, 1), (-1, -1), 'SimSun'),
-                ('FONTSIZE', (0, 1), (-1, -1), 12),
+                ('FONTNAME', (0, 1), (-1, -1), font_name),
+                ('FONTSIZE', (0, 1), (-1, -1), 10),
                 ('GRID', (0, 0), (-1, -1), 1, colors.black)
             ]))
             
@@ -415,11 +435,18 @@ class CourseManager:
             
             # 尝试使用中文字体
             try:
-                font_title = ImageFont.truetype("SimSun.ttf", 24)
-                font_content = ImageFont.truetype("SimSun.ttf", 16)
+                font_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'fonts', 'simsun.ttc')
+                font_title = ImageFont.truetype(font_path, 24)
+                font_content = ImageFont.truetype(font_path, 16)
             except:
-                font_title = ImageFont.load_default()
-                font_content = ImageFont.load_default()
+                try:
+                    # 尝试使用系统字体
+                    font_title = ImageFont.truetype("C:/Windows/Fonts/simsun.ttc", 24)
+                    font_content = ImageFont.truetype("C:/Windows/Fonts/simsun.ttc", 16)
+                except:
+                    logger.warning("未找到中文字体，使用默认字体")
+                    font_title = ImageFont.load_default()
+                    font_content = ImageFont.load_default()
             
             # 绘制标题
             title = "课程表" if view_type == "week" else f"{target_date.strftime('%Y年%m月%d日')}课程安排"
