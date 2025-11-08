@@ -23,8 +23,9 @@ class ModernCourseScheduleApp:
         self._init_basic_variables()
         # 然后初始化学期
         self.init_semesters()
-        # 设置默认周数
-        self.current_week = 1
+        # 设置默认时间
+        self.current_time = 1
+        self.time_unit = "week"
         # 初始化提醒服务
         self.reminder_service = ReminderService(self.course_manager)
         # 最后设置UI
@@ -49,7 +50,7 @@ class ModernCourseScheduleApp:
     def _post_init(self):
         """UI初始化后的设置"""
         self.current_week = self.get_current_week()
-        self.top_bar.week_var.set(self.current_week)
+        self.top_bar.time_var.set(self.current_week)
         self.load_courses()
         self.update_display()
 
@@ -165,9 +166,9 @@ class ModernCourseScheduleApp:
             self.root.after_cancel(self._update_timer)
         self._update_timer = self.root.after(100, self.update_display)
 
-    def on_week_change(self):
-        """周数改变事件"""
-        self.current_week = self.top_bar.week_var.get()
+    def on_time_change(self):
+        """时间改变事件"""
+        self.current_time = self.top_bar.time_var.get()
         self.load_courses()
         self._schedule_update()
 
@@ -209,6 +210,18 @@ class ModernCourseScheduleApp:
             return
             
         self.current_view = view
+        self.time_unit = view  # 更新时间单位类型
+        
+        # 根据视图类型设置时间控制范围和初始值
+        if view == "week":
+            self.top_bar.time_spinbox.config(from_=1, to=20)
+            self.top_bar.time_var.set(self.current_week)
+        elif view == "day":
+            self.top_bar.time_spinbox.config(from_=1, to=31)
+            self.top_bar.time_var.set(datetime.now().day)
+        else:  # month
+            self.top_bar.time_spinbox.config(from_=1, to=12)
+            self.top_bar.time_var.set(datetime.now().month)
         
         # 隐藏所有视图
         self.week_view.frame.pack_forget()

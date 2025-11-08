@@ -15,7 +15,7 @@ class TopBar:
     def create_widgets(self):
         """创建顶部控制栏"""
         # 创建主容器，添加渐变背景
-        top_frame = tb.Frame(self.parent, bootstyle=PRIMARY)
+        top_frame = tb.Frame(self.parent, bootstyle=PRIMARY, padding=2)
         top_frame.pack(fill=X, pady=(0, 10))
         
         # 添加阴影效果
@@ -48,17 +48,17 @@ class TopBar:
         basic_frame = tb.Frame(control_notebook, padding=10)
         control_notebook.add(basic_frame, text="📊 基础控制")
 
-        # 周数控制区域
-        week_frame = tb.Frame(basic_frame)
-        week_frame.pack(side=LEFT, padx=10)
-        
-        tb.Label(week_frame, text="当前周数", 
+        # 时间控制区域
+        time_frame = tb.Frame(basic_frame)
+        time_frame.pack(side=LEFT, padx=10)
+
+        tb.Label(time_frame, text="当前时间", 
                 font=("Helvetica", 10)).pack(side=LEFT, padx=(0, 5))
-        self.week_var = tb.IntVar(value=getattr(self.app, 'current_week', 1))
-        week_spinbox = tb.Spinbox(week_frame, from_=1, to=20, width=5,
-                                textvariable=self.week_var, 
-                                command=self.app.on_week_change)
-        week_spinbox.pack(side=LEFT, padx=5)
+        self.time_var = tb.IntVar(value=1)
+        self.time_spinbox = tb.Spinbox(time_frame, from_=1, to=20, width=5,
+                                    textvariable=self.time_var, 
+                                    command=self.app.on_time_change)
+        self.time_spinbox.pack(side=LEFT, padx=5)
 
         # 视图切换区域
         view_frame = tb.Frame(basic_frame)
@@ -319,9 +319,14 @@ class StatsPanel:
 
     def create_widgets(self):
         """创建统计面板"""
-        self.stats_frame = tb.Labelframe(self.parent, text="课程统计", padding=15)
+        self.stats_frame = tb.Labelframe(self.parent, text="📊 课程统计", 
+                                        padding=15, relief="raised", borderwidth=1)
         self.stats_frame.pack(side=LEFT, fill=Y, padx=(0, 15))
-        self.stats_labels = {}
+        
+        # 添加统计面板样式
+        style = tb.Style()
+        style.configure("Stats.TLabelframe", background="#f8f9fa", relief="flat")
+        style.configure("Stats.TLabelframe.Label", font=("Helvetica", 12, "bold"))
 
     def update_stats(self, courses, current_week, course_manager, view_type="week", current_date=None):
         """更新统计信息"""

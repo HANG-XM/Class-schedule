@@ -18,6 +18,8 @@ class WeekView:
 
     def show(self):
         """显示周视图"""
+        self.app.current_week = self.app.current_time
+
         if self._render_timer:
             self.parent.after_cancel(self._render_timer)
             self._render_timer = None
@@ -253,6 +255,8 @@ class DayView:
 
     def show(self, target_date=None):
         """显示日视图"""
+        if target_date is None:
+            target_date = datetime.now().replace(day=self.app.current_time)
         # 清空现有内容
         for widget in self.frame.winfo_children():
             widget.destroy()
@@ -386,6 +390,7 @@ class MonthView:
 
     def show(self):
         """显示月视图"""
+        self.current_date = datetime.now().replace(month=self.app.current_time)
         # 清空现有内容
         for widget in self.frame.winfo_children():
             widget.destroy()
