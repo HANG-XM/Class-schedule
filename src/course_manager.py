@@ -2,7 +2,51 @@ import sqlite3
 from datetime import datetime,timedelta
 from typing import List, Tuple
 from logger_config import logger
-import re
+
+class DataValidator:
+    @staticmethod
+    def validate_course_data(course_data):
+        """验证课程数据"""
+        errors = []
+        required_fields = [
+            (course_data[0], "课程名称"),
+            (course_data[1], "任课老师"),
+            (course_data[2], "上课地点")
+        ]
+        
+        for field, name in required_fields:
+            if not field or not field.strip():
+                errors.append(f"请输入{name}")
+                
+        try:
+            start_week = int(course_data[3])
+            end_week = int(course_data[4])
+            if start_week < 1 or end_week > 20:
+                errors.append("周数范围应在1-20周之间")
+            if start_week > end_week:
+                errors.append("起始周不能大于结束周")
+        except ValueError:
+            errors.append("周数必须是有效的数字")
+            
+        return errors
+    @staticmethod
+    def validate_time_format(time_str: str) -> bool:
+        """验证时间格式是否正确"""
+        try:
+            datetime.strptime(time_str, "%H:%M")
+            return True
+        except ValueError:
+            return False
+
+    @staticmethod
+    def validate_week_range(start_week: int, end_week: int) -> List[str]:
+        """验证周数范围"""
+        errors = []
+        if start_week < 1 or end_week > 20:
+            errors.append("周数范围应在1-20周之间")
+        if start_week > end_week:
+            errors.append("起始周不能大于结束周")
+        return errors
 class CourseManager:
     def __init__(self):
         self.init_database()

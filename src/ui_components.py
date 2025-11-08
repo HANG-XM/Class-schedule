@@ -1,14 +1,77 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from tkinter import messagebox
-from logger_config import logger
-from course_manager import SpecialCourse
-from datetime import datetime, timedelta
 
-class TopBar:
+from logger_config import logger
+from datetime import datetime, timedelta
+from typing import Tuple
+
+from course_manager import SpecialCourse
+
+class BaseComponent:
     def __init__(self, parent, app):
         self.parent = parent
         self.app = app
+        self.style = tb.Style()
+        
+    def create_labeled_frame(self, text, padding=10):
+        """创建带标签的框架"""
+        return tb.LabelFrame(self.parent, text=text, padding=padding)
+        
+    def create_labeled_entry(self, parent, label_text, width=20):
+        """创建带标签的输入框"""
+        frame = tb.Frame(parent)
+        frame.pack(fill=X, pady=3)
+        tb.Label(frame, text=label_text, width=10).pack(side=LEFT)
+        entry = tb.Entry(frame, font=("Helvetica", 10), width=width)
+        entry.pack(side=LEFT, fill=X, expand=True, padx=(10, 0))
+        return entry
+        
+    def create_button(self, parent, text, command, style=SUCCESS, width=10):
+        """创建按钮"""
+        return tb.Button(parent, text=text, command=command,
+                        bootstyle=style, width=width)
+
+    def create_time_selector(self, parent, time_slots):
+        """创建时间选择器"""
+        return tb.Combobox(parent, 
+                         values=[f"{start}-{end}" for start, end in time_slots],
+                         state="readonly", 
+                         font=("Helvetica", 10),
+                         width=15)
+
+    def create_week_selector(self, parent, start_week=1, end_week=20):
+        """创建周数选择器"""
+        frame = tb.Frame(parent)
+        start_spin = tb.Spinbox(frame, from_=start_week, to=end_week, width=5)
+        start_spin.pack(side=LEFT)
+        tb.Label(frame, text=" 至 ").pack(side=LEFT)
+        end_spin = tb.Spinbox(frame, from_=start_week, to=end_week, width=5)
+        end_spin.pack(side=LEFT)
+        return start_spin, end_spin
+    def create_time_frame(self, parent, label_text: str) -> Tuple:
+        """创建时间选择框架"""
+        frame = tb.Frame(parent)
+        tb.Label(frame, text=label_text).pack(side=LEFT)
+        time_combo = tb.Combobox(frame, 
+                            values=[f"{start}-{end}" for start, end in self.app.time_slots],
+                            state="readonly")
+        time_combo.pack(side=LEFT, padx=5)
+        return frame, time_combo
+
+    def create_week_frame(self, parent, label_text: str) -> Tuple:
+        """创建周数选择框架"""
+        frame = tb.Frame(parent)
+        tb.Label(frame, text=label_text).pack(side=LEFT)
+        start_spin = tb.Spinbox(frame, from_=1, to=20, width=5)
+        start_spin.pack(side=LEFT)
+        tb.Label(frame, text=" 至 ").pack(side=LEFT)
+        end_spin = tb.Spinbox(frame, from_=1, to=20, width=5)
+        end_spin.pack(side=LEFT)
+        return frame, start_spin, end_spin    
+class TopBar(BaseComponent):
+    def __init__(self, parent, app):
+        super().__init__(parent, app)
         self.create_widgets()
 
     def create_widgets(self):
@@ -281,10 +344,9 @@ class TopBar:
         """显示学习报告对话框"""
         from dialogs import StudyReportDialog
         StudyReportDialog(self.parent, self.app)
-class StatsPanel:
+class StatsPanel(BaseComponent):
     def __init__(self, parent, app):
-        self.parent = parent
-        self.app = app
+        super().__init__(parent, app)
         self.create_widgets()
 
     def create_widgets(self):
@@ -292,7 +354,24 @@ class StatsPanel:
         self.stats_frame = tb.Labelframe(self.parent, text="课程统计", padding=15)
         self.stats_frame.pack(side=LEFT, fill=Y, padx=(0, 15))
         self.stats_labels = {}
+    def _create_stat_section(self, parent, title, stats_dict):
+        """创建统计部分"""
+        section = tb.LabelFrame(parent, text=title, padding=10)
+        section.pack(fill=X, pady=5)
+        
+        for stat_type, stats in stats_dict.items():
+            self._create_stat_widget(section, stat_type, stats)
 
+    def _create_stat_widget(self, parent, stat_type, stats_dict):
+        """创建统计信息组件"""
+        frame = tb.Frame(parent)
+        frame.pack(fill=X, pady=2)
+        
+        tb.Label(frame, text=stats_dict["text"], 
+                font=("Helvetica", 10)).pack(side=LEFT)
+        tb.Label(frame, text=str(stats_dict["value"]), 
+                bootstyle=stats_dict["style"],
+                font=("Helvetica", 12, "bold")).pack(side=RIGHT)
     def update_stats(self, courses, current_week, course_manager, view_type="week", current_date=None):
         """更新统计信息"""
         try:
@@ -600,16 +679,6 @@ class StatsPanel:
             "weekly": weekly_stats
         }
 
-    def _create_stat_widget(self, parent, stat_type, stats_dict):
-        """创建统计信息组件"""
-        frame = tb.Frame(parent)
-        frame.pack(fill=X, pady=2)
-        
-        tb.Label(frame, text=stats_dict["text"], 
-                font=("Helvetica", 10)).pack(side=LEFT)
-        tb.Label(frame, text=str(stats_dict["value"]), 
-                bootstyle=stats_dict["style"],
-            font=("Helvetica", 12, "bold")).pack(side=RIGHT)
     def create_study_stats_section(self, parent):
         """创建学习统计部分"""
         stats_frame = tb.LabelFrame(parent, text="学习统计", padding=10)
