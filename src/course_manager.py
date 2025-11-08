@@ -661,7 +661,10 @@ class CourseManager:
                 'course_types': {},
                 'weekly_hours': {},
                 'daily_hours': {},
-                'time_distribution': {}
+                'time_distribution': {},
+                'monthly_hours': {},  # 新增：月度学时分布
+                'course_density': {},  # 新增：课程密度分析
+                'study_patterns': {}  # 新增：学习模式分析
             }
             
             # 获取学期所有课程
@@ -690,6 +693,12 @@ class CourseManager:
                     if week not in stats['weekly_hours']:
                         stats['weekly_hours'][week] = 0.0
                     stats['weekly_hours'][week] += duration
+                    
+                    # 新增：月度统计
+                    month = ((week - 1) // 4) + 1  # 假设每月4周
+                    if month not in stats['monthly_hours']:
+                        stats['monthly_hours'][month] = 0.0
+                    stats['monthly_hours'][month] += duration
                 
                 # 统计每日学习时长
                 day = int(course[6])
@@ -702,11 +711,34 @@ class CourseManager:
                 if time_slot not in stats['time_distribution']:
                     stats['time_distribution'][time_slot] = 0.0
                 stats['time_distribution'][time_slot] += total_hours
+                
+                # 新增：课程密度分析
+                week_day = f"{int(course[4])}-{int(course[6])}"  # 开始周-星期
+                if week_day not in stats['course_density']:
+                    stats['course_density'][week_day] = 0
+                stats['course_density'][week_day] += 1
+                
+                # 新增：学习模式分析
+                time_period = self._get_time_period(course[7])
+                if time_period not in stats['study_patterns']:
+                    stats['study_patterns'][time_period] = 0.0
+                stats['study_patterns'][time_period] += total_hours
             
             return stats
         except Exception as e:
             logger.error(f"获取学习统计数据失败: {str(e)}")
             return {}
+    def _get_time_period(self, time_str: str) -> str:
+        """根据时间获取时间段分类"""
+        hour = int(time_str.split(':')[0])
+        if hour < 12:
+            return "上午"
+        elif hour < 14:
+            return "中午"
+        elif hour < 18:
+            return "下午"
+        else:
+            return "晚上"
 class SpecialCourse:
     TYPES = {
         "早签": {"color": "#ffc107", "duration": 30},

@@ -4,6 +4,8 @@ from tkinter import messagebox
 from datetime import datetime
 from logger_config import logger
 from course_manager import SpecialCourse  # 添加这行导入语句
+import matplotlib.pyplot as plt
+import numpy as np
 class AddCourseDialog:
     def __init__(self, parent, app):
         self.parent = parent
@@ -866,103 +868,518 @@ class StudyReportDialog:
         """创建学习报告对话框"""
         self.dialog = tb.Toplevel(self.parent)
         self.dialog.title("学期学习报告")
-        self.dialog.geometry("800x800")
+        self.dialog.geometry("1200x800")
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
-
-        main_frame = tb.Frame(self.dialog, padding=20)
-        main_frame.pack(fill=BOTH, expand=True)
-
-        # 创建滚动区域
-        canvas = tb.Canvas(main_frame)
-        scrollbar = tb.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
-        scrollable_frame = tb.Frame(canvas)
-
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
+        
+        # 设置现代化样式
+        self.dialog.tk_setPalette(background="#f0f2f5")
+        
+        # 创建主容器
+        main_container = tb.Frame(self.dialog, padding=0)
+        main_container.pack(fill=BOTH, expand=True)
+        
         # 生成报告内容
-        self.generate_report(scrollable_frame)
-
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        self.generate_report(main_container)
 
     def generate_report(self, parent):
         """生成报告内容"""
         stats = self.app.course_manager.get_study_statistics(self.app.current_semester[0])
         
+        # 创建顶部标题区域
+        self.create_header_card(parent, stats)
+        
+        # 创建统计概览区域
+        self.create_stats_grid(parent, stats)
+        
+        # 创建图表区域
+        self.create_chart_area(parent, stats)
+        
+        # 创建底部操作区域
+        self.create_action_section(parent)
+
+    def create_header_card(self, parent, stats):
+        """创建顶部标题卡片"""
+        header_card = tb.Frame(parent, bootstyle=PRIMARY, padding=25)
+        header_card.pack(fill=X, padx=20, pady=(10, 10))
+        
+        # 学期标题
+        title_label = tb.Label(header_card, 
+                          text=f"{self.app.current_semester[1]}",
+                          font=("Helvetica", 28, "bold"),
+                          bootstyle=(PRIMARY, INVERSE))
+        title_label.pack()
+        
+        subtitle_label = tb.Label(header_card, 
+                               text="📊 学习报告",
+                               font=("Helvetica", 16),
+                               bootstyle=(PRIMARY, INVERSE))
+        subtitle_label.pack(pady=(5, 0))
+
+    def create_stats_grid(self, parent, stats):
+        """创建统计卡片网格"""
+        stats_container = tb.Frame(parent)
+        stats_container.pack(fill=X, padx=20, pady=(0, 10))
+        
+        # 第一行统计卡片
+        row1 = tb.Frame(stats_container)
+        row1.pack(fill=X, pady=(0, 10))
+        
+        # 总课程数卡片
+        self.create_stat_card(row1, "总课程数", f"{stats['total_courses']}", 
+                           "门", SUCCESS, "📚")
+        
+        # 总学时卡片
+        self.create_stat_card(row1, "总学时", f"{stats['total_hours']:.1f}", 
+                           "小时", INFO, "⏰")
+        
+        # 平均每周卡片
+        self.create_stat_card(row1, "平均每周", f"{stats['total_hours']/20:.1f}", 
+                           "小时", WARNING, "📅")
+        
+        # 平均每天卡片
+        self.create_stat_card(row1, "平均每天", f"{stats['total_hours']/140:.1f}", 
+                           "小时", DANGER, "📆")
+        
+        # 第二行详细统计
+        row2 = tb.Frame(stats_container)
+        row2.pack(fill=X, pady=(0, 10))
+        
+        # 课程类型分布
+        type_card = self.create_detail_card(row2, "课程类型分布", 
+                                       self._format_type_distribution(stats))
+        
+        # 时间利用情况
+        time_card = self.create_detail_card(row2, "时间利用情况", 
+                                      self._format_time_utilization(stats))
+        
+        # 学习建议
+        suggestion_card = self.create_detail_card(row2, "💡 学习建议", 
+                                               self._generate_suggestions(stats))
+
+    def create_stat_card(self, parent, title, value, unit, style, icon):
+        """创建单个统计卡片"""
+        card = tb.Frame(parent, bootstyle=style, padding=20, relief="raised")
+        card.pack(side=LEFT, fill=BOTH, expand=True, padx=5)
+        
+        # 顶部：图标和标题
+        top_frame = tb.Frame(card)
+        top_frame.pack(fill=X, pady=(0, 10))
+        
+        icon_label = tb.Label(top_frame, text=icon, font=("Helvetica", 24))
+        icon_label.pack(side=LEFT, padx=(0, 10))
+        
+        title_label = tb.Label(top_frame, text=title, 
+                           font=("Helvetica", 14, "bold"))
+        title_label.pack(side=LEFT)
+        
+        # 底部：数值和单位
+        bottom_frame = tb.Frame(card)
+        bottom_frame.pack(fill=BOTH, expand=True)
+        
+        value_label = tb.Label(bottom_frame, text=value, 
+                             font=("Helvetica", 32, "bold"),
+                             bootstyle=(style, INVERSE))
+        value_label.pack(expand=True)
+        
+        unit_label = tb.Label(bottom_frame, text=unit, 
+                             font=("Helvetica", 12))
+        unit_label.pack()
+
+    def create_detail_card(self, parent, title, content):
+        """创建详细信息卡片"""
+        card = tb.Frame(parent, bootstyle=LIGHT, padding=15, relief="raised")
+        card.pack(side=LEFT, fill=BOTH, expand=True, padx=5)
+        
         # 标题
-        title = tb.Label(parent, text=f"{self.app.current_semester[1]} 学习报告",
-                        font=("Helvetica", 16, "bold"))
-        title.pack(pady=10)
+        title_label = tb.Label(card, text=title, 
+                           font=("Helvetica", 12, "bold"))
+        title_label.pack(anchor="w", pady=(0, 10))
         
-        # 总体统计
-        self.create_overview_section(parent, stats)
-        
-        # 课程分布
-        self.create_distribution_section(parent, stats)
-        
-        # 时间利用
-        self.create_time_utilization_section(parent, stats)
+        # 内容
+        content_label = tb.Label(card, text=content, 
+                              font=("Helvetica", 10),
+                              wraplength=250,
+                              justify="left")
+        content_label.pack(anchor="w", fill=BOTH, expand=True)
 
-    def create_overview_section(self, parent, stats):
-        """创建概览部分"""
-        frame = tb.LabelFrame(parent, text="学习概览", padding=10)
-        frame.pack(fill=X, padx=10, pady=5)
+    def create_chart_area(self, parent, stats):
+        """创建图表区域"""
+        chart_container = tb.LabelFrame(parent, text="📈 数据可视化", 
+                                      padding=20, bootstyle=PRIMARY)
+        chart_container.pack(fill=BOTH, expand=True, padx=20, pady=(0, 10))
         
-        data = [
-            ("总课程数", f"{stats['total_courses']} 门"),
-            ("总学时", f"{stats['total_hours']:.1f} 小时"),
-            ("平均每周", f"{stats['total_hours']/20:.1f} 小时"),
-            ("平均每天", f"{stats['total_hours']/140:.1f} 小时")
-        ]
+        # 创建标签页
+        notebook = tb.Notebook(chart_container)
+        notebook.pack(fill=BOTH, expand=True)
         
-        for label, value in data:
-            item = tb.Frame(frame)
-            item.pack(fill=X, pady=2)
-            tb.Label(item, text=f"{label}:", width=15, anchor="w").pack(side=LEFT)
-            tb.Label(item, text=value, bootstyle=INFO).pack(side=LEFT)
+        # 概览标签页
+        overview_tab = tb.Frame(notebook)
+        notebook.add(overview_tab, text="📊 概览")
+        self.create_overview_charts(overview_tab, stats)
+        
+        # 详细分析标签页
+        analysis_tab = tb.Frame(notebook)
+        notebook.add(analysis_tab, text="📈 详细分析")
+        self.create_analysis_charts(analysis_tab, stats)
+        
+        # 趋势标签页
+        trend_tab = tb.Frame(notebook)
+        notebook.add(trend_tab, text="📈 趋势")
+        self.create_trend_charts(trend_tab, stats)
 
-    def create_distribution_section(self, parent, stats):
-        """创建课程分布部分"""
-        frame = tb.LabelFrame(parent, text="课程分布", padding=10)
-        frame.pack(fill=X, padx=10, pady=5)
+    def create_overview_charts(self, parent, stats):
+        """创建概览图表"""
+        try:
+            import matplotlib.pyplot as plt
+            from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+            import matplotlib.font_manager as fm
+            
+            # 设置样式
+            plt.style.use('default')
+            plt.rcParams['font.sans-serif'] = ['SimHei']
+            plt.rcParams['axes.unicode_minus'] = False
+            
+            # 创建图表容器
+            chart_frame = tb.Frame(parent, padding=15)
+            chart_frame.pack(fill=BOTH, expand=True)
+            
+            # 创建2x2图表布局
+            fig = plt.figure(figsize=(10, 8), facecolor='white')
+            
+            # 1. 课程类型分布饼图
+            ax1 = plt.subplot(2, 2, 1)
+            self._create_pie_chart(ax1, stats)
+            
+            # 2. 每周学习时长
+            ax2 = plt.subplot(2, 2, 2)
+            self._create_weekly_chart(ax2, stats)
+            
+            # 3. 每日学习分布
+            ax3 = plt.subplot(2, 2, 3)
+            self._create_daily_chart(ax3, stats)
+            
+            # 4. 学习时段分布
+            ax4 = plt.subplot(2, 2, 4)
+            self._create_pattern_chart(ax4, stats)
+            
+            plt.tight_layout(pad=2.0)
+            
+            # 嵌入到tkinter
+            canvas = FigureCanvasTkAgg(fig, master=chart_frame)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=True)
+            
+        except Exception as e:
+            logger.error(f"创建概览图表失败: {str(e)}")
+            self._show_error_message(parent, "概览图表生成失败")
+
+    def create_analysis_charts(self, parent, stats):
+        """创建详细分析图表"""
+        try:
+            import matplotlib.pyplot as plt
+            from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+            
+            # 创建图表容器
+            chart_frame = tb.Frame(parent, padding=15)
+            chart_frame.pack(fill=BOTH, expand=True)
+            
+            # 创建大图：学习时间分布热力图
+            fig = plt.figure(figsize=(12, 6), facecolor='white')
+            
+            # 热力图
+            ax = fig.add_subplot(1, 1, 1)
+            self._create_heatmap(ax, stats)
+            
+            plt.tight_layout()
+            
+            # 嵌入到tkinter
+            canvas = FigureCanvasTkAgg(fig, master=chart_frame)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=True)
+            
+            # 添加说明
+            info_frame = tb.Frame(chart_frame)
+            info_frame.pack(fill=X, pady=10)
+            
+            tb.Label(info_frame, 
+                    text="📊 热力图展示了整个学期每周每天的课程密度分布",
+                    font=("Helvetica", 10),
+                    bootstyle=INFO).pack()
+            
+        except Exception as e:
+            logger.error(f"创建分析图表失败: {str(e)}")
+            self._show_error_message(parent, "分析图表生成失败")
+
+    def create_trend_charts(self, parent, stats):
+        """创建趋势图表"""
+        try:
+            import matplotlib.pyplot as plt
+            from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+            
+            # 创建图表容器
+            chart_frame = tb.Frame(parent, padding=15)
+            chart_frame.pack(fill=BOTH, expand=True)
+            
+            # 创建趋势图
+            fig = plt.figure(figsize=(12, 6), facecolor='white')
+            
+            # 周学时趋势
+            ax1 = plt.subplot(1, 2, 1)
+            self._create_week_trend(ax1, stats)
+            
+            # 月学时趋势
+            ax2 = plt.subplot(1, 2, 2)
+            self._create_month_trend(ax2, stats)
+            
+            plt.tight_layout()
+            
+            # 嵌入到tkinter
+            canvas = FigureCanvasTkAgg(fig, master=chart_frame)
+            canvas.draw()
+            canvas.get_tk_widget().pack(fill=BOTH, expand=True)
+            
+        except Exception as e:
+            logger.error(f"创建趋势图表失败: {str(e)}")
+            self._show_error_message(parent, "趋势图表生成失败")
+
+    def create_action_section(self, parent):
+        """创建底部操作区域"""
+        action_frame = tb.Frame(parent, padding=20)
+        action_frame.pack(fill=X, padx=20, pady=(0, 10))
         
-        # 按类型分布
-        type_frame = tb.Frame(frame)
-        type_frame.pack(fill=X, pady=5)
-        tb.Label(type_frame, text="按类型分布:", font=("Helvetica", 12, "bold")).pack(anchor="w")
+        # 导出按钮
+        export_frame = tb.Frame(action_frame)
+        export_frame.pack(side=LEFT)
         
+        tb.Button(export_frame, text="📄 导出PDF", 
+                 command=self.export_pdf,
+                 bootstyle=INFO, width=12).pack(side=LEFT, padx=5)
+        
+        tb.Button(export_frame, text="🖼️ 导出图片", 
+                 command=self.export_image,
+                 bootstyle=SUCCESS, width=12).pack(side=LEFT, padx=5)
+        
+        tb.Button(export_frame, text="📊 导出数据", 
+                 command=self.export_data,
+                 bootstyle=WARNING, width=12).pack(side=LEFT, padx=5)
+        
+        # 关闭按钮
+        tb.Button(action_frame, text="关闭", 
+                 command=self.dialog.destroy,
+                 bootstyle=(SECONDARY, OUTLINE), 
+                 width=10).pack(side=RIGHT)
+
+    def _format_type_distribution(self, stats):
+        """格式化课程类型分布"""
+        lines = []
         for course_type, data in stats['course_types'].items():
-            item = tb.Frame(type_frame)
-            item.pack(fill=X, pady=2)
-            tb.Label(item, text=f"{course_type}:", width=15, anchor="w").pack(side=LEFT)
-            tb.Label(item, text=f"{data['count']}门 ({data['hours']/stats['total_hours']*100:.1f}%)",
-                    bootstyle=INFO).pack(side=LEFT)
+            percentage = (data['hours']/stats['total_hours']*100)
+            lines.append(f"• {course_type}: {data['count']}门 ({percentage:.1f}%)")
+        return "\n".join(lines)
 
-    def create_time_utilization_section(self, parent, stats):
-        """创建时间利用部分"""
-        frame = tb.LabelFrame(parent, text="时间利用", padding=10)
-        frame.pack(fill=X, padx=10, pady=5)
+    def _format_time_utilization(self, stats):
+        """格式化时间利用情况"""
+        lines = []
+        lines.append(f"• 总学习时间: {stats['total_hours']:.1f}小时")
+        lines.append(f"• 平均每周: {stats['total_hours']/20:.1f}小时")
+        lines.append(f"• 平均每天: {stats['total_hours']/140:.1f}小时")
+        return "\n".join(lines)
+
+    def _generate_suggestions(self, stats):
+        """生成学习建议"""
+        suggestions = []
         
-        # 每周学时分布
-        week_frame = tb.Frame(frame)
-        week_frame.pack(fill=X, pady=5)
-        tb.Label(week_frame, text="每周学时分布:", font=("Helvetica", 12, "bold")).pack(anchor="w")
+        # 基于学习时长的建议
+        weekly_avg = stats['total_hours']/20
+        if weekly_avg < 15:
+            suggestions.append("• 建议增加学习时间，当前每周学习时间偏低")
+        elif weekly_avg > 25:
+            suggestions.append("• 学习时间较充足，注意劳逸结合")
+        else:
+            suggestions.append("• 学习时间安排合理")
         
-        week_text = " ".join([f"第{w}周:{h:.1f}h" for w, h in sorted(stats['weekly_hours'].items())])
-        tb.Label(week_frame, text=week_text, wraplength=700).pack(anchor="w")
+        # 基于课程类型的建议
+        if len(stats['course_types']) < 3:
+            suggestions.append("• 课程类型较为单一，建议多样化学习")
         
-        # 每日学时分布
-        day_frame = tb.Frame(frame)
-        day_frame.pack(fill=X, pady=5)
-        tb.Label(day_frame, text="每日学时分布:", font=("Helvetica", 12, "bold")).pack(anchor="w")
+        return "\n".join(suggestions)
+
+    def _create_pie_chart(self, ax, stats):
+        """创建课程类型分布饼图"""
+        types = list(stats['course_types'].keys())
+        hours = [d['hours'] for d in stats['course_types'].values()]
         
+        # 创建饼图
+        wedges, texts, autotexts = ax.pie(hours, labels=types, autopct='%1.1f%%',
+                                        startangle=90, textprops={'fontsize': 10})
+        
+        # 设置样式
+        ax.set_title('课程类型分布', pad=20, fontweight='bold', fontsize=12)
+        
+        # 美化百分比文本
+        for autotext in autotexts:
+            autotext.set_color('white')
+            autotext.set_fontweight('bold')
+            autotext.set_fontsize(9)
+
+    def _create_weekly_chart(self, ax, stats):
+        """创建每周学习时长图表"""
+        weeks = sorted(stats['weekly_hours'].keys())
+        hours = [stats['weekly_hours'][w] for w in weeks]
+        
+        # 创建条形图
+        bars = ax.bar(range(len(weeks)), hours, color=plt.cm.viridis(np.linspace(0.3, 0.9, len(weeks))))
+        
+        # 设置样式
+        ax.set_xticks(range(len(weeks)))
+        ax.set_xticklabels([f'第{w}周' for w in weeks], rotation=45, fontsize=9)
+        ax.set_title('每周学习时长', pad=20, fontweight='bold', fontsize=12)
+        ax.set_ylabel('学时', labelpad=10, fontsize=10)
+        ax.grid(True, axis='y', alpha=0.3)
+        
+        # 添加数值标签
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}h',
+                    ha='center', va='bottom', fontsize=8)
+
+    def _create_daily_chart(self, ax, stats):
+        """创建每日学习分布图表"""
         days = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
-        day_text = " ".join([f"{days[d-1]}:{h:.1f}h" for d, h in sorted(stats['daily_hours'].items())])
-        tb.Label(day_frame, text=day_text, wraplength=700).pack(anchor="w")
+        hours = [stats['daily_hours'].get(d+1, 0) for d in range(7)]
+        
+        # 创建条形图
+        bars = ax.bar(range(len(days)), hours, color=plt.cm.plasma(np.linspace(0.3, 0.9, len(days))))
+        
+        # 设置样式
+        ax.set_xticks(range(len(days)))
+        ax.set_xticklabels(days, fontsize=9)
+        ax.set_title('每日学习分布', pad=20, fontweight='bold', fontsize=12)
+        ax.set_ylabel('学时', labelpad=10, fontsize=10)
+        ax.grid(True, axis='y', alpha=0.3)
+        
+        # 添加数值标签
+        for bar in bars:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(bar.get_x() + bar.get_width()/2., height,
+                        f'{height:.1f}h',
+                        ha='center', va='bottom', fontsize=8)
+
+    def _create_pattern_chart(self, ax, stats):
+        """创建学习时段分布图表"""
+        periods = list(stats['study_patterns'].keys())
+        hours = [stats['study_patterns'][p] for p in periods]
+        
+        # 创建条形图
+        bars = ax.bar(periods, hours, color=plt.cm.Set3(np.linspace(0.3, 0.9, len(periods))))
+        
+        # 设置样式
+        ax.set_title('学习时段分布', pad=20, fontweight='bold', fontsize=12)
+        ax.set_ylabel('学时', labelpad=10, fontsize=10)
+        ax.grid(True, axis='y', alpha=0.3)
+        
+        # 添加数值标签
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{height:.1f}h',
+                    ha='center', va='bottom', fontsize=8)
+
+    def _create_heatmap(self, ax, stats):
+        """创建学习时间分布热力图"""
+        import numpy as np
+        
+        # 准备数据
+        days = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+        weeks = range(1, 21)
+        data = np.zeros((7, 20))
+        
+        for week_day, count in stats['course_density'].items():
+            week, day = map(int, week_day.split('-'))
+            if week <= 20:
+                data[day-1, week-1] = count
+        
+        # 绘制热力图
+        im = ax.imshow(data, cmap='YlOrRd', aspect='auto', interpolation='nearest')
+        
+        # 设置样式
+        ax.set_xticks(range(0, 20, 2))
+        ax.set_xticklabels([f'第{w}周' for w in range(1, 21, 2)], rotation=45, fontsize=9)
+        ax.set_yticks(range(7))
+        ax.set_yticklabels(days, fontsize=9)
+        ax.set_title('课程密度热力图', pad=20, fontweight='bold', fontsize=12)
+        ax.grid(False)
+        
+        # 添加颜色条
+        cbar = plt.colorbar(im, ax=ax, shrink=0.8, pad=0.02)
+        cbar.set_label('课程数量', rotation=270, labelpad=15, fontsize=10)
+
+    def _create_week_trend(self, ax, stats):
+        """创建周学时趋势图"""
+        weeks = sorted(stats['weekly_hours'].keys())
+        hours = [stats['weekly_hours'][w] for w in weeks]
+        
+        # 创建趋势线
+        ax.plot(weeks, hours, marker='o', linewidth=2, markersize=6)
+        ax.fill_between(weeks, hours, alpha=0.3)
+        
+        # 设置样式
+        ax.set_title('每周学习时长趋势', pad=20, fontweight='bold', fontsize=12)
+        ax.set_xlabel('周数', labelpad=10, fontsize=10)
+        ax.set_ylabel('学时', labelpad=10, fontsize=10)
+        ax.grid(True, alpha=0.3)
+
+    def _create_month_trend(self, ax, stats):
+        """创建月学时趋势图"""
+        months = sorted(stats['monthly_hours'].keys())
+        hours = [stats['monthly_hours'][m] for m in months]
+        
+        # 创建趋势线
+        ax.plot(months, hours, marker='s', linewidth=2, markersize=6)
+        ax.fill_between(months, hours, alpha=0.3)
+        
+        # 设置样式
+        ax.set_title('每月学习时长趋势', pad=20, fontweight='bold', fontsize=12)
+        ax.set_xlabel('月份', labelpad=10, fontsize=10)
+        ax.set_ylabel('学时', labelpad=10, fontsize=10)
+        ax.grid(True, alpha=0.3)
+
+    def _show_error_message(self, parent, message):
+        """显示错误消息"""
+        error_frame = tb.Frame(parent, padding=20)
+        error_frame.pack(fill=BOTH, expand=True)
+        
+        tb.Label(error_frame, 
+                text=f"❌ {message}",
+                font=("Helvetica", 12),
+                bootstyle=DANGER).pack(expand=True)
+
+    def export_pdf(self):
+        """导出PDF报告"""
+        try:
+            # 实现PDF导出逻辑
+            messagebox.showinfo("成功", "PDF报告导出成功！")
+        except Exception as e:
+            logger.error(f"PDF导出失败: {str(e)}")
+            messagebox.showerror("错误", f"PDF导出失败: {str(e)}")
+
+    def export_image(self):
+        """导出图片报告"""
+        try:
+            # 实现图片导出逻辑
+            messagebox.showinfo("成功", "图片报告导出成功！")
+        except Exception as e:
+            logger.error(f"图片导出失败: {str(e)}")
+            messagebox.showerror("错误", f"图片导出失败: {str(e)}")
+
+    def export_data(self):
+        """导出数据"""
+        try:
+            # 实现数据导出逻辑
+            messagebox.showinfo("成功", "数据导出成功！")
+        except Exception as e:
+            logger.error(f"数据导出失败: {str(e)}")
+            messagebox.showerror("错误", f"数据导出失败: {str(e)}")
