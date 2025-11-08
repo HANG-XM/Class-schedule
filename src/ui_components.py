@@ -23,7 +23,7 @@ class TopBar:
         shadow.pack(fill=X, pady=(0, 5))
         
         # 创建内层容器，添加边距和圆角
-        inner_frame = tb.Frame(top_frame, padding=15)
+        inner_frame = tb.Frame(top_frame, padding=0)
         inner_frame.pack(fill=X, expand=True)
 
         # 创建控制面板容器
@@ -34,10 +34,10 @@ class TopBar:
         style = tb.Style()
         style.configure("Custom.TNotebook", 
             background="#f8f9fa",
-            tabposition="top")  # 添加更多配置
+            tabposition="top")
         style.configure("Custom.TNotebook.Tab", 
             padding=[12, 8],
-            background="#ffffff")  # 添加更多配置
+            background="#ffffff")
 
         control_notebook = tb.Notebook(control_container, 
                                     bootstyle=(PRIMARY, INVERSE),
@@ -62,7 +62,7 @@ class TopBar:
 
         # 视图切换区域
         view_frame = tb.Frame(basic_frame)
-        view_frame.pack(side=LEFT, padx=10)
+        view_frame.pack(side=RIGHT, padx=10)
 
         view_buttons = [
             ("📅 周视图", "week"),
@@ -70,12 +70,11 @@ class TopBar:
             ("📆 月视图", "month")
         ]
         
-        for text, view in view_buttons:
-            tb.Button(view_frame, text=text, 
+        for text, view in reversed(view_buttons):
+            tb.Button(view_frame, text=text,
                     command=lambda v=view: self.app.switch_view(v),
                     bootstyle=(INFO, OUTLINE),
-                    width=12).pack(side=LEFT, padx=2)
-
+                    width=12).pack(side=RIGHT, padx=2)  # 改为RIGHT
         # 搜索标签页
         search_frame = tb.Frame(control_notebook, padding=10)
         control_notebook.add(search_frame, text="🔍 搜索")
@@ -104,14 +103,55 @@ class TopBar:
                 command=self.app.search_courses,
                 bootstyle=INFO).pack(side=LEFT, padx=5)
 
-        # 高级功能标签页
-        advanced_frame = tb.Frame(control_notebook, padding=10)
-        control_notebook.add(advanced_frame, text="⚙️ 高级功能")
+        # 课程管理标签页
+        course_manage_frame = tb.Frame(control_notebook, padding=10)
+        control_notebook.add(course_manage_frame, text="⚙️ 课程管理")
+
+        # 课程管理按钮区域
+        manage_frame = tb.Frame(course_manage_frame)
+        manage_frame.pack(side=LEFT, padx=10)
+
+        buttons = [
+            ("➕ 添加课程", self.app.show_add_course_dialog, SUCCESS),
+            ("📤 导出课程", self.show_export_dialog, WARNING),
+            ("🔗 分享课程", self.show_share_dialog, INFO)
+        ]
+
+        for text, command, style in buttons:
+            tb.Button(manage_frame, text=text, command=command,
+                    bootstyle=(style, OUTLINE),
+                    width=12).pack(side=LEFT, padx=5)
+
+        # 学期管理标签页
+        semester_frame = tb.Frame(control_notebook, padding=10)
+        control_notebook.add(semester_frame, text="📚 学期管理")
+
+        # 学期管理按钮区域
+        semester_manage_frame = tb.Frame(semester_frame)
+        semester_manage_frame.pack(side=LEFT, padx=10)
+
+        semester_buttons = [
+            ("📅 新建学期", self.show_add_semester_dialog, PRIMARY),
+            ("✏️ 修改学期", self.show_edit_semester_dialog, INFO)
+        ]
+
+        for text, command, style in semester_buttons:
+            tb.Button(semester_manage_frame, text=text, command=command,
+                    bootstyle=(style, OUTLINE),
+                    width=12).pack(side=LEFT, padx=5)
+
+        # 学期选择器
+        if self.app.current_semester:
+            self._create_semester_selector(semester_frame)
+
+        # 其他功能标签页
+        other_frame = tb.Frame(control_notebook, padding=10)
+        control_notebook.add(other_frame, text="🔧 其他功能")
 
         # 主题切换区域
-        theme_frame = tb.Frame(advanced_frame)
+        theme_frame = tb.Frame(other_frame)
         theme_frame.pack(side=LEFT, padx=10)
-        
+
         tb.Label(theme_frame, text="主题:", 
                 font=("Helvetica", 10)).pack(side=LEFT, padx=5)
         theme_combo = tb.Combobox(theme_frame, values=self.app.themes, width=12,
@@ -120,27 +160,11 @@ class TopBar:
         theme_combo.pack(side=LEFT, padx=5)
         theme_combo.bind('<<ComboboxSelected>>', self.app.on_theme_change)
 
-        # 课程管理按钮区域
-        manage_frame = tb.Frame(advanced_frame)
-        manage_frame.pack(side=LEFT, padx=10)
-
-        buttons = [
-            ("➕ 添加课程", self.app.show_add_course_dialog, SUCCESS),
-            ("📅 新建学期", self.show_add_semester_dialog, PRIMARY),
-            ("✏️ 修改学期", self.show_edit_semester_dialog, INFO),
-            ("📤 导出课程", self.show_export_dialog, WARNING),
-            ("🔗 分享课程", self.show_share_dialog, INFO),
-            ("📊 学习报告", self.show_study_report, SECONDARY)
-        ]
-
-        for text, command, style in buttons:
-            tb.Button(manage_frame, text=text, command=command,
-                    bootstyle=(style, OUTLINE),
-                    width=12).pack(side=LEFT, padx=5)
-
-        # 学期选择器
-        if self.app.current_semester:
-            self._create_semester_selector(advanced_frame)
+        # 学习报告按钮
+        tb.Button(other_frame, text="📊 学习报告", 
+                command=self.show_study_report,
+                bootstyle=(SECONDARY, OUTLINE),
+                width=12).pack(side=LEFT, padx=5)
 
     def _create_semester_selector(self, parent):
         """创建学期选择器"""
