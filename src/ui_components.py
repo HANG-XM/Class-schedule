@@ -476,8 +476,15 @@ class StatsPanel:
                 free_days = 0
                 
                 for day, slots in week_free_slots.items():
-                    if slots:  # 如果当天有空闲时间
+                    # 只有当天完全没课才算空闲
+                    day_courses = [c for c in courses 
+                                if int(c[6]) == day and 
+                                int(c[4]) <= current_week <= int(c[5])]
+                    
+                    if not day_courses:  # 如果当天没有任何课程
                         free_days += 1
+                    else:
+                        # 计算当天的空闲时间
                         total_free_time += sum(self._calculate_duration(start, end) for start, end in slots)
                 
                 # 第一行：空闲时长
