@@ -27,6 +27,20 @@ class WeekView:
                         bootstyle=WARNING).pack(expand=True)
                 return
 
+            # 添加周导航栏
+            nav_frame = tb.Frame(self.frame)
+            nav_frame.pack(fill=X, pady=(0, 10))
+
+            tb.Button(nav_frame, text="◀", width=3,
+                    command=self.previous_week).pack(side=LEFT, padx=5)
+            
+            week_label = tb.Label(nav_frame, text=f"第{self.app.current_week}周",
+                                font=("Helvetica", 16, "bold"))
+            week_label.pack(side=LEFT, expand=True)
+            
+            tb.Button(nav_frame, text="▶", width=3,
+                    command=self.next_week).pack(side=LEFT, padx=5)
+
             # 确保周数在有效范围内
             self.app.current_week = max(1, min(self.app.current_week, 20))
             
@@ -131,7 +145,23 @@ class WeekView:
         except Exception as e:
             logger.error(f"显示周视图失败: {str(e)}")
             raise
+    def previous_week(self):
+        """切换到上一周"""
+        try:
+            self.app.current_week = max(1, self.app.current_week - 1)
+            self.app.top_bar.week_var.set(self.app.current_week)
+            self.show()
+        except Exception as e:
+            logger.error(f"切换上一周失败: {str(e)}")
 
+    def next_week(self):
+        """切换到下一周"""
+        try:
+            self.app.current_week = min(20, self.app.current_week + 1)
+            self.app.top_bar.week_var.set(self.app.current_week)
+            self.show()
+        except Exception as e:
+            logger.error(f"切换下一周失败: {str(e)}")
     def on_course_double_click(self, event):
         """处理表格双击事件"""
         try:
