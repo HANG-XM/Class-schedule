@@ -8,6 +8,7 @@ class WeekView:
     def __init__(self, parent, app):
         self.parent = parent
         self.app = app
+        self._render_timer = None
         self.create_widgets()
 
     def create_widgets(self):
@@ -17,9 +18,15 @@ class WeekView:
 
     def show(self):
         """显示周视图"""
-        for widget in self.frame.winfo_children():
-            widget.destroy()
+        if self._render_timer:
+            self.parent.after_cancel(self._render_timer)
+            self._render_timer = None
+
         try:
+            # 清空现有内容
+            for widget in self.frame.winfo_children():
+                widget.destroy()
+
             if not self.app.current_semester:
                 logger.warning("没有选择当前学期")
                 tb.Label(self.frame, text="请先创建或选择学期", 
@@ -44,8 +51,11 @@ class WeekView:
             # 确保周数在有效范围内
             self.app.current_week = max(1, min(self.app.current_week, 20))
             
-            week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
-                        if str(c[12]) == str(self.app.current_semester[0])]
+            # 获取本周课程
+            week_courses = [c for c in self.app.course_manager.get_courses()
+                        if str(c[12]) == str(self.app.current_semester[0]) 
+                        and int(c[4]) <= self.app.current_week <= int(c[5])]
+            
             logger.info(f"当前周数: {self.app.current_week}")
             logger.info(f"当前学期ID: {self.app.current_semester[0]}")
             logger.info(f"本周课程列表: {week_courses}")
@@ -53,7 +63,8 @@ class WeekView:
             # 创建表格
             columns = ["时间"] + self.app.days_of_week
             tree = tb.Treeview(self.frame, columns=columns, show="tree headings", height=22)
-            # 在这里添加表格样式设置
+
+            # 设置表格样式
             style = tb.Style()
             style.configure("Treeview", 
                 rowheight=100,
@@ -71,12 +82,13 @@ class WeekView:
             # 绑定双击事件
             tree.bind("<Double-Button-1>", self.on_course_double_click)
 
+            # 设置列宽
             tree.column("#0", width=0, stretch=NO)
             tree.column("时间", width=90, anchor=CENTER)
             for day in self.app.days_of_week:
                 tree.column(day, width=180, anchor=CENTER)
 
-            # 设置表头样式
+            # 设置表头
             for col in columns:
                 tree.heading(col, text=col)
                 tree.column(col, minwidth=100)
@@ -140,12 +152,19 @@ class WeekView:
         except Exception as e:
             logger.error(f"显示周视图失败: {str(e)}")
             raise
+
+    def _schedule_render(self):
+        """延迟渲染，避免频繁更新"""
+        if self._render_timer:
+            self.parent.after_cancel(self._render_timer)
+        self._render_timer = self.parent.after(100, self.show)
+
     def previous_week(self):
         """切换到上一周"""
         try:
             self.app.current_week = max(1, self.app.current_week - 1)
             self.app.top_bar.week_var.set(self.app.current_week)
-            self.show()
+            self._schedule_render()
         except Exception as e:
             logger.error(f"切换上一周失败: {str(e)}")
 
@@ -154,9 +173,10 @@ class WeekView:
         try:
             self.app.current_week = min(20, self.app.current_week + 1)
             self.app.top_bar.week_var.set(self.app.current_week)
-            self.show()
+            self._schedule_render()
         except Exception as e:
             logger.error(f"切换下一周失败: {str(e)}")
+
     def on_course_double_click(self, event):
         """处理表格双击事件"""
         try:
@@ -194,7 +214,7 @@ class WeekView:
             start_time, end_time = time_parts
             
             # 查找对应的课程
-            week_courses = [c for c in self.app.course_manager.get_courses_by_week(self.app.current_week)
+            week_courses = [c for c in self.app.course_manager.get_courses()
                         if str(c[12]) == str(self.app.current_semester[0])]
             
             # 添加调试信息

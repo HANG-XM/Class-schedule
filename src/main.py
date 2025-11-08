@@ -44,6 +44,7 @@ class ModernCourseScheduleApp:
         self.days_of_week = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
         self.courses = []
         self.current_week = 1
+        self._update_timer = None
 
     def _post_init(self):
         """UI初始化后的设置"""
@@ -100,6 +101,7 @@ class ModernCourseScheduleApp:
     def show_add_course_dialog(self):
         """显示添加课程对话框"""
         AddCourseDialog(self.root, self)
+
     def search_courses(self):
         """处理课程搜索"""
         keyword = self.top_bar.search_var.get().strip()
@@ -115,8 +117,9 @@ class ModernCourseScheduleApp:
         search_type = search_type_map.get(self.top_bar.search_type.get(), "name")
         
         self.courses = self.course_manager.search_courses(keyword, search_type)
-        self.courses = [c for c in self.courses if str(c[12]) == str(self.current_semester[0])]
+        self.courses = [c for c in self.courses if str(c[12]) == str(self.app.current_semester[0])]
         self.update_display()
+
     def load_courses(self):
         """加载课程数据"""
         if not self.current_semester:
@@ -156,11 +159,17 @@ class ModernCourseScheduleApp:
             self.month_view.show()
             self.month_view.frame.pack(fill=BOTH, expand=True)
 
+    def _schedule_update(self):
+        """延迟更新，避免频繁刷新"""
+        if self._update_timer:
+            self.root.after_cancel(self._update_timer)
+        self._update_timer = self.root.after(100, self.update_display)
+
     def on_week_change(self):
         """周数改变事件"""
         self.current_week = self.top_bar.week_var.get()
         self.load_courses()
-        self.update_display()
+        self._schedule_update()
 
     def on_theme_change(self, event):
         """主题切换事件"""
@@ -193,6 +202,7 @@ class ModernCourseScheduleApp:
         logger.info(f"实际使用的周数: {current_week}")
         
         return current_week
+
     def switch_view(self, view):
         """切换视图"""
         if self.current_view == view:
@@ -217,6 +227,7 @@ class ModernCourseScheduleApp:
             self.month_view.frame.pack(fill=BOTH, expand=True)
         
         logger.info(f"视图已切换到: {view}")
+
     def run(self):
         """运行应用"""
         # 启动提醒服务

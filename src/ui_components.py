@@ -9,6 +9,7 @@ class TopBar:
     def __init__(self, parent, app):
         self.parent = parent
         self.app = app
+        self._widgets = {}  # 缓存组件
         self.create_widgets()
 
     def create_widgets(self):
@@ -191,6 +192,7 @@ class TopBar:
         else:
             # 如果不存在学期选择器，创建一个
             self._create_semester_selector(self.parent.winfo_children()[0])
+
     def _refresh_semester_list(self):
         """刷新学期列表"""
         self.app.semesters = self.app.course_manager.get_semesters()
@@ -203,12 +205,14 @@ class TopBar:
                     if self.app.current_semester:
                         widget.set(self.app.current_semester[1])
                     break
+
     def show_edit_semester_dialog(self):
         """显示修改学期对话框"""
         from dialogs import EditSemesterDialog
         dialog = EditSemesterDialog(self.parent, self.app)
         self.parent.wait_window(dialog.dialog)
         self._refresh_semester_list()
+
     def show_export_dialog(self):
         """显示导出对话框"""
         dialog = tb.Toplevel(self.parent)
@@ -273,10 +277,12 @@ class TopBar:
         except Exception as e:
             logger.error(f"导出课程失败: {str(e)}")
             messagebox.showerror("错误", f"导出失败: {str(e)}")
+
     def show_share_dialog(self):
         """显示分享对话框"""
         from dialogs import ShareDialog
         ShareDialog(self.parent, self.app)
+
     def show_study_report(self):
         """显示学习报告对话框"""
         from dialogs import StudyReportDialog

@@ -11,6 +11,8 @@ class ReminderService:
         self.course_manager = course_manager
         self.running = False
         self.reminder_thread = None
+        self._last_check = 0
+        self._check_interval = 30  # 检查间隔（秒）
 
     def start(self):
         """启动提醒服务"""
@@ -32,6 +34,12 @@ class ReminderService:
         """检查并触发提醒"""
         while self.running:
             try:
+                current_time = time.time()
+                if current_time - self._last_check < self._check_interval:
+                    time.sleep(1)
+                    continue
+
+                self._last_check = current_time
                 now = datetime.now()
                 current_week = self._get_current_week()
                 current_day = now.weekday() + 1  # 转换为1-7
@@ -43,9 +51,9 @@ class ReminderService:
                     if self._should_remind(course, now, current_day):
                         self._trigger_reminder(course)
                         
-                time.sleep(60)  # 每分钟检查一次
             except Exception as e:
                 logger.error(f"检查提醒时出错: {str(e)}")
+                time.sleep(60)  # 出错时等待1分钟再继续
 
     def _should_remind(self, course, now, current_day):
         """判断是否应该触发提醒"""
@@ -54,6 +62,7 @@ class ReminderService:
             if len(course) < 16:  # 确保有足够的数据
                 logger.warning(f"课程数据不完整: {course}")
                 return False
+                
             # 检查是否是今天的课程
             if int(course[6]) != current_day:
                 return False

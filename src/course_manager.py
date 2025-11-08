@@ -3,9 +3,12 @@ from datetime import datetime,timedelta
 from typing import List, Tuple
 from logger_config import logger
 import re
+import time
 class CourseManager:
     def __init__(self):
         self.init_database()
+        self._cache = {}
+        self._cache_timeout = 300
     
     def init_database(self):
         """初始化数据库"""
@@ -46,7 +49,27 @@ class CourseManager:
         except sqlite3.Error as e:
             logger.error(f"数据库初始化失败: {str(e)}")
             raise
+    def _get_cache_key(self, method_name, *args):
+        """生成缓存键"""
+        return f"{method_name}:{'_'.join(map(str, args))}"
 
+    def _is_cache_valid(self, cache_key):
+        """检查缓存是否有效"""
+        if cache_key not in self._cache:
+            return False
+        timestamp, _ = self._cache[cache_key]
+        return (time.time() - timestamp) < self._cache_timeout
+
+    def _get_from_cache(self, cache_key):
+        """从缓存获取数据"""
+        if self._is_cache_valid(cache_key):
+            _, data = self._cache[cache_key]
+            return data
+        return None
+
+    def _set_cache(self, cache_key, data):
+        """设置缓存"""
+        self._cache[cache_key] = (time.time(), data)
     def add_semester(self, name, start_date, end_date):
         """添加学期"""
         conn = sqlite3.connect('courses.db')
@@ -119,45 +142,38 @@ class CourseManager:
             conn.close()
     
     def get_courses(self) -> List[Tuple]:
+        cache_key = self._get_cache_key("get_courses")
+        cached_data = self._get_from_cache(cache_key)
+        if cached_data is not None:
+            return cached_data
+
         try:
             conn = sqlite3.connect('courses.db')
             cursor = conn.cursor()
             cursor.execute('SELECT * FROM courses ORDER BY semester_id, day_of_week, start_time')
             courses = cursor.fetchall()
-            # 转换数据类型
+            
             valid_courses = []
             for c in courses:
                 try:
                     processed_course = (
-                        c[0],  # id
-                        c[1],  # name
-                        c[2],  # teacher
-                        c[3],  # location
-                        int(c[4]),  # start_week
-                        int(c[5]),  # end_week
-                        int(c[6]),  # day_of_week
-                        c[7],  # start_time
-                        c[8],  # end_time
-                        c[9],  # color
-                        c[10], # course_type
-                        c[11], # is_special
-                        c[12],  # semester_id
-                        c[13],  # reminder_enabled
-                        c[14],  # reminder_minutes
-                        c[15]   # reminder_type
+                        c[0], c[1], c[2], c[3], int(c[4]), int(c[5]), 
+                        int(c[6]), c[7], c[8], c[9], c[10], c[11], 
+                        c[12], c[13], c[14], c[15]
                     )
                     if self._is_valid_course(processed_course):
                         valid_courses.append(processed_course)
                 except (ValueError, TypeError):
-                    logger.warning(f"跳过无效课程数据: {c}")
                     continue
-            logger.info(f"获取到 {len(valid_courses)} 门有效课程")
+            
+            self._set_cache(cache_key, valid_courses)
             return valid_courses
         except Exception as e:
             logger.error(f"获取课程列表失败: {str(e)}")
             return []
         finally:
             conn.close()
+
     def _is_valid_course(self, course: Tuple) -> bool:
         """验证课程数据是否有效"""
         try:
