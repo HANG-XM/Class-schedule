@@ -483,9 +483,10 @@ class StatsPanel:
                     
                     if not day_courses:  # 如果当天没有任何课程
                         free_days += 1
-                    else:
-                        # 计算当天的空闲时间
-                        total_free_time += sum(self._calculate_duration(start, end) for start, end in slots)
+                    
+                    # 计算当天的空闲时间（所有空闲时间段）
+                    day_free_time = sum(self._calculate_duration(start, end) for start, end in slots)
+                    total_free_time = round(total_free_time + day_free_time, 1)  # 确保每次累加都进行精度处理
                 
                 # 第一行：空闲时长
                 time_frame = tb.Frame(view_frame)
@@ -502,7 +503,6 @@ class StatsPanel:
                 tb.Label(days_frame, text=f"空闲天数: {free_days}/7",
                         font=("Helvetica", 9),
                         bootstyle=INFO).pack()
-                        
             else:  # month
                 # 获取月份的空闲时间统计
                 month_stats = course_manager.get_month_free_time_slots(current_date.year, current_date.month)
