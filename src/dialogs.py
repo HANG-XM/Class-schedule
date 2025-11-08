@@ -1,7 +1,7 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from tkinter import messagebox
-from datetime import datetime
+from datetime import datetime, timedelta
 from logger_config import logger
 from course_manager import SpecialCourse  # 添加这行导入语句
 import matplotlib.pyplot as plt
@@ -788,7 +788,8 @@ class ShareDialog:
         self.share_type = tb.StringVar(value="week")
         types = [
             ("周课程表", "week"),
-            ("单日课程", "day")
+            ("单日课程", "day"),
+            ("本月课程", "month")  # 添加本月课程选项
         ]
         
         for text, value in types:
@@ -836,6 +837,21 @@ class ShareDialog:
             if share_type == "week":
                 courses = self.app.course_manager.get_courses_by_week(self.app.current_week)
                 target_date = None
+            elif share_type == "month":  # 添加本月课程处理
+                current_date = self.app.month_view.current_date
+                year, month = current_date.year, current_date.month
+                # 获取月份的第一天和最后一天
+                first_day = datetime(year, month, 1)
+                last_day = datetime(year, month + 1, 1) - timedelta(days=1) if month < 12 else datetime(year, 12, 31)
+                # 计算月份的第一天和最后一天对应的周数
+                start_week = ((first_day - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+                end_week = ((last_day - datetime.strptime(self.app.current_semester[2], "%Y-%m-%d")).days // 7) + 1
+                # 获取该月份的所有课程
+                courses = []
+                for week in range(start_week, end_week + 1):
+                    week_courses = self.app.course_manager.get_courses_by_week(week)
+                    courses.extend([c for c in week_courses if str(c[12]) == str(self.app.current_semester[0])])
+                target_date = current_date
             else:
                 current_date = datetime.now()
                 if self.app.current_view == "month":

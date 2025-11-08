@@ -268,8 +268,11 @@ class CourseManager:
         try:
             if not filename:
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                filename = f"courses_{timestamp}"
-                
+                if view_type == "month":  # 为本月课程添加特殊命名
+                    filename = f"month_courses_{target_date.strftime('%Y%m')}"
+                else:
+                    filename = f"courses_{timestamp}"
+                    
             if format == "excel":
                 return self._export_to_excel(courses, filename)
             elif format == "csv":
