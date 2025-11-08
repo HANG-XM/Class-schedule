@@ -162,12 +162,6 @@ class ModernCourseScheduleApp:
         self.load_courses()
         self.update_display()
 
-    def switch_view(self, view):
-        """切换视图"""
-        self.current_view = view
-        self.update_display()
-        logger.info(f"视图已切换到: {view}")
-
     def on_theme_change(self, event):
         """主题切换事件"""
         new_theme = event.widget.get()

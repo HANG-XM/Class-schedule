@@ -555,18 +555,28 @@ class EditCourseDialog(AddCourseDialog):
         if not self.app.current_semester:
             messagebox.showerror("错误", "请先创建学期")
             return
-            
+
         # 验证输入
         errors = self.validate_inputs()
         if errors:
             logger.warning(f"课程验证失败: {errors}")
             messagebox.showerror("输入错误", "\n".join(errors))
             return
-            
+
         try:
             # 获取时间选择
             time_index = self.start_time.current()
             start_time, end_time = self.app.time_slots[time_index]
+            
+            # 获取课程类型
+            course_type = self.type_var.get()
+            is_special = "1" if course_type != "正常" else "0"
+            
+            # 根据课程类型获取颜色
+            if course_type in SpecialCourse.TYPES:
+                color = SpecialCourse.TYPES[course_type]["color"]
+            else:
+                color = self.color_var.get()
             
             # 准备课程数据
             course_data = (
@@ -578,9 +588,9 @@ class EditCourseDialog(AddCourseDialog):
                 str(self.day_var.get()),
                 start_time,
                 end_time,
-                self.color_var.get(),
-                self.type_var.get(),
-                "1" if self.type_var.get() == "调休" else "0",
+                color,
+                course_type,
+                is_special,
                 str(self.app.current_semester[0])
             )
 

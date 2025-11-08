@@ -71,11 +71,6 @@ class WeekView:
             # 绑定双击事件
             tree.bind("<Double-Button-1>", self.on_course_double_click)
 
-            # 设置列宽和样式
-            style = tb.Style()
-            style.configure("Treeview", rowheight=100)
-            tree.configure(style="Treeview")
-
             tree.column("#0", width=0, stretch=NO)
             tree.column("时间", width=90, anchor=CENTER)
             for day in self.app.days_of_week:

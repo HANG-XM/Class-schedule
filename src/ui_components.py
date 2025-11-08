@@ -29,11 +29,15 @@ class TopBar:
         control_container = tb.Frame(inner_frame)
         control_container.pack(side=RIGHT, fill=X, expand=True)
 
-        # 创建Notebook，添加样式
+        # 创建Notebook样式
         style = tb.Style()
-        style.configure("Custom.TNotebook", background="#f8f9fa")
-        style.configure("Custom.TNotebook.Tab", padding=[12, 8])
-        
+        style.configure("Custom.TNotebook", 
+            background="#f8f9fa",
+            tabposition="top")  # 添加更多配置
+        style.configure("Custom.TNotebook.Tab", 
+            padding=[12, 8],
+            background="#ffffff")  # 添加更多配置
+
         control_notebook = tb.Notebook(control_container, 
                                     bootstyle=(PRIMARY, INVERSE),
                                     style="Custom.TNotebook")
