@@ -846,3 +846,113 @@ class ShareDialog:
         except Exception as e:
             logger.error(f"分享课程失败: {str(e)}")
             messagebox.showerror("错误", f"分享失败: {str(e)}")
+class StudyReportDialog:
+    def __init__(self, parent, app):
+        self.parent = parent
+        self.app = app
+        self.create_dialog()
+
+    def create_dialog(self):
+        """创建学习报告对话框"""
+        self.dialog = tb.Toplevel(self.parent)
+        self.dialog.title("学期学习报告")
+        self.dialog.geometry("800x800")
+        self.dialog.transient(self.parent)
+        self.dialog.grab_set()
+
+        main_frame = tb.Frame(self.dialog, padding=20)
+        main_frame.pack(fill=BOTH, expand=True)
+
+        # 创建滚动区域
+        canvas = tb.Canvas(main_frame)
+        scrollbar = tb.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tb.Frame(canvas)
+
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        # 生成报告内容
+        self.generate_report(scrollable_frame)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+    def generate_report(self, parent):
+        """生成报告内容"""
+        stats = self.app.course_manager.get_study_statistics(self.app.current_semester[0])
+        
+        # 标题
+        title = tb.Label(parent, text=f"{self.app.current_semester[1]} 学习报告",
+                        font=("Helvetica", 16, "bold"))
+        title.pack(pady=10)
+        
+        # 总体统计
+        self.create_overview_section(parent, stats)
+        
+        # 课程分布
+        self.create_distribution_section(parent, stats)
+        
+        # 时间利用
+        self.create_time_utilization_section(parent, stats)
+
+    def create_overview_section(self, parent, stats):
+        """创建概览部分"""
+        frame = tb.LabelFrame(parent, text="学习概览", padding=10)
+        frame.pack(fill=X, padx=10, pady=5)
+        
+        data = [
+            ("总课程数", f"{stats['total_courses']} 门"),
+            ("总学时", f"{stats['total_hours']:.1f} 小时"),
+            ("平均每周", f"{stats['total_hours']/20:.1f} 小时"),
+            ("平均每天", f"{stats['total_hours']/140:.1f} 小时")
+        ]
+        
+        for label, value in data:
+            item = tb.Frame(frame)
+            item.pack(fill=X, pady=2)
+            tb.Label(item, text=f"{label}:", width=15, anchor="w").pack(side=LEFT)
+            tb.Label(item, text=value, bootstyle=INFO).pack(side=LEFT)
+
+    def create_distribution_section(self, parent, stats):
+        """创建课程分布部分"""
+        frame = tb.LabelFrame(parent, text="课程分布", padding=10)
+        frame.pack(fill=X, padx=10, pady=5)
+        
+        # 按类型分布
+        type_frame = tb.Frame(frame)
+        type_frame.pack(fill=X, pady=5)
+        tb.Label(type_frame, text="按类型分布:", font=("Helvetica", 12, "bold")).pack(anchor="w")
+        
+        for course_type, data in stats['course_types'].items():
+            item = tb.Frame(type_frame)
+            item.pack(fill=X, pady=2)
+            tb.Label(item, text=f"{course_type}:", width=15, anchor="w").pack(side=LEFT)
+            tb.Label(item, text=f"{data['count']}门 ({data['hours']/stats['total_hours']*100:.1f}%)",
+                    bootstyle=INFO).pack(side=LEFT)
+
+    def create_time_utilization_section(self, parent, stats):
+        """创建时间利用部分"""
+        frame = tb.LabelFrame(parent, text="时间利用", padding=10)
+        frame.pack(fill=X, padx=10, pady=5)
+        
+        # 每周学时分布
+        week_frame = tb.Frame(frame)
+        week_frame.pack(fill=X, pady=5)
+        tb.Label(week_frame, text="每周学时分布:", font=("Helvetica", 12, "bold")).pack(anchor="w")
+        
+        week_text = " ".join([f"第{w}周:{h:.1f}h" for w, h in sorted(stats['weekly_hours'].items())])
+        tb.Label(week_frame, text=week_text, wraplength=700).pack(anchor="w")
+        
+        # 每日学时分布
+        day_frame = tb.Frame(frame)
+        day_frame.pack(fill=X, pady=5)
+        tb.Label(day_frame, text="每日学时分布:", font=("Helvetica", 12, "bold")).pack(anchor="w")
+        
+        days = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
+        day_text = " ".join([f"{days[d-1]}:{h:.1f}h" for d, h in sorted(stats['daily_hours'].items())])
+        tb.Label(day_frame, text=day_text, wraplength=700).pack(anchor="w")

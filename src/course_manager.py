@@ -632,6 +632,61 @@ class CourseManager:
         except Exception as e:
             logger.error(f"计算时间段长度失败: {str(e)}")
             return 0.0
+    def get_study_statistics(self, semester_id: int) -> dict:
+        """获取学期学习统计数据"""
+        try:
+            stats = {
+                'total_courses': 0,
+                'total_hours': 0.0,
+                'course_types': {},
+                'weekly_hours': {},
+                'daily_hours': {},
+                'time_distribution': {}
+            }
+            
+            # 获取学期所有课程
+            courses = [c for c in self.get_courses() if str(c[12]) == str(semester_id)]
+            stats['total_courses'] = len(courses)
+            
+            # 计算总学习时长
+            for course in courses:
+                # 计算单次课程时长
+                duration = self._calculate_duration(course[7], course[8])
+                # 计算总周数
+                weeks = int(course[5]) - int(course[4]) + 1
+                # 计算该课程总时长
+                total_hours = duration * weeks
+                stats['total_hours'] += total_hours
+                
+                # 统计课程类型分布
+                course_type = course[10]
+                if course_type not in stats['course_types']:
+                    stats['course_types'][course_type] = {'count': 0, 'hours': 0.0}
+                stats['course_types'][course_type]['count'] += 1
+                stats['course_types'][course_type]['hours'] += total_hours
+                
+                # 统计每周学习时长
+                for week in range(int(course[4]), int(course[5]) + 1):
+                    if week not in stats['weekly_hours']:
+                        stats['weekly_hours'][week] = 0.0
+                    stats['weekly_hours'][week] += duration
+                
+                # 统计每日学习时长
+                day = int(course[6])
+                if day not in stats['daily_hours']:
+                    stats['daily_hours'][day] = 0.0
+                stats['daily_hours'][day] += total_hours
+                
+                # 统计时间段分布
+                time_slot = f"{course[7]}-{course[8]}"
+                if time_slot not in stats['time_distribution']:
+                    stats['time_distribution'][time_slot] = 0.0
+                stats['time_distribution'][time_slot] += total_hours
+            
+            return stats
+        except Exception as e:
+            logger.error(f"获取学习统计数据失败: {str(e)}")
+            return {}
 class SpecialCourse:
     TYPES = {
         "早签": {"color": "#ffc107", "duration": 30},

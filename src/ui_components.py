@@ -124,7 +124,8 @@ class TopBar:
             ("📅 新建学期", self.show_add_semester_dialog, PRIMARY),
             ("✏️ 修改学期", self.show_edit_semester_dialog, INFO),
             ("📤 导出课程", self.show_export_dialog, WARNING),
-            ("🔗 分享课程", self.show_share_dialog, INFO)
+            ("🔗 分享课程", self.show_share_dialog, INFO),
+            ("📊 学习报告", self.show_study_report, SECONDARY)
         ]
 
         for text, command, style in buttons:
@@ -272,6 +273,10 @@ class TopBar:
         """显示分享对话框"""
         from dialogs import ShareDialog
         ShareDialog(self.parent, self.app)
+    def show_study_report(self):
+        """显示学习报告对话框"""
+        from dialogs import StudyReportDialog
+        StudyReportDialog(self.parent, self.app)
 class StatsPanel:
     def __init__(self, parent, app):
         self.parent = parent
@@ -601,3 +606,46 @@ class StatsPanel:
         tb.Label(frame, text=str(stats_dict["value"]), 
                 bootstyle=stats_dict["style"],
             font=("Helvetica", 12, "bold")).pack(side=RIGHT)
+    def create_study_stats_section(self, parent):
+        """创建学习统计部分"""
+        stats_frame = tb.LabelFrame(parent, text="学习统计", padding=10)
+        stats_frame.pack(fill=X, pady=5)
+        
+        # 获取统计数据
+        stats = self.app.course_manager.get_study_statistics(self.app.current_semester[0])
+        
+        if not stats:
+            tb.Label(stats_frame, text="暂无统计数据", 
+                    font=("Helvetica", 10),
+                    bootstyle=SECONDARY).pack(expand=True)
+            return
+        
+        # 显示总体统计
+        total_frame = tb.Frame(stats_frame)
+        total_frame.pack(fill=X, pady=5)
+        
+        tb.Label(total_frame, text="总课程数:",
+                font=("Helvetica", 10)).pack(side=LEFT)
+        tb.Label(total_frame, text=str(stats['total_courses']),
+                font=("Helvetica", 12, "bold"),
+                bootstyle=PRIMARY).pack(side=LEFT, padx=5)
+        
+        tb.Label(total_frame, text="总学时:",
+                font=("Helvetica", 10)).pack(side=LEFT, padx=(20, 0))
+        tb.Label(total_frame, text=f"{stats['total_hours']:.1f}小时",
+                font=("Helvetica", 12, "bold"),
+                bootstyle=INFO).pack(side=LEFT, padx=5)
+        
+        # 显示课程类型分布
+        type_frame = tb.LabelFrame(stats_frame, text="课程类型分布", padding=5)
+        type_frame.pack(fill=X, pady=5)
+        
+        for course_type, data in stats['course_types'].items():
+            type_item = tb.Frame(type_frame)
+            type_item.pack(fill=X, pady=2)
+            
+            tb.Label(type_item, text=f"{course_type}:",
+                    font=("Helvetica", 10)).pack(side=LEFT)
+            tb.Label(type_item, text=f"{data['count']}门 ({data['hours']:.1f}小时)",
+                    font=("Helvetica", 10),
+                    bootstyle=INFO).pack(side=LEFT, padx=5)

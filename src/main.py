@@ -1,13 +1,14 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
-from datetime import datetime
 import ttkbootstrap as tb
-from ttkbootstrap.constants import *
-from course_manager import CourseManager, SpecialCourse
+from tkinter import ttk, messagebox
+from ttkbootstrap.constants import LEFT, BOTH
+
+from course_manager import CourseManager
 from reminder_service import ReminderService
 from ui_components import TopBar, StatsPanel
 from views import WeekView, DayView, MonthView
 from dialogs import AddCourseDialog
+
+from datetime import datetime
 from logger_config import logger
 
 class ModernCourseScheduleApp:
