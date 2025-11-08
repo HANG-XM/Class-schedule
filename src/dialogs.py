@@ -1,44 +1,13 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
 from tkinter import messagebox
-
 from datetime import datetime
 from logger_config import logger
-
-from course_manager import SpecialCourse, DataValidator
-class BaseDialog:
-    def __init__(self, parent, app, title, geometry):
+from course_manager import SpecialCourse  # 添加这行导入语句
+class AddCourseDialog:
+    def __init__(self, parent, app):
         self.parent = parent
         self.app = app
-        self.dialog = tb.Toplevel(parent)
-        self.dialog.title(title)
-        self.dialog.geometry(geometry)
-        self.dialog.transient(parent)
-        self.dialog.grab_set()
-        
-    def create_main_frame(self, padding=20):
-        """创建主框架"""
-        return tb.Frame(self.dialog, padding=padding)
-        
-    def create_button_frame(self, parent):
-        """创建按钮框架"""
-        btn_frame = tb.Frame(parent)
-        btn_frame.pack(fill=X, pady=5)
-        tb.Button(btn_frame, text="取消", command=self.dialog.destroy,
-                 bootstyle=(SECONDARY, OUTLINE), width=10).pack(side=RIGHT, padx=5)
-        return btn_frame
-
-    def validate_inputs(self, *fields):
-        """验证输入字段"""
-        errors = []
-        for field, name in fields:
-            if not field or not field.strip():
-                errors.append(f"请输入{name}")
-        return errors
-
-class AddCourseDialog(BaseDialog):
-    def __init__(self, parent, app):
-        super().__init__(parent, app, "添加课程", "580x840")
         self.create_dialog()
 
     def create_dialog(self):
@@ -340,14 +309,33 @@ class AddCourseDialog(BaseDialog):
 
     def validate_inputs(self):
         """验证所有输入字段"""
-        course_data = (
-            self.name_entry.get().strip(),
-            self.teacher_entry.get().strip(),
-            self.location_entry.get().strip(),
-            self.start_week.get(),
-            self.end_week.get()
-        )
-        return DataValidator.validate_course_data(course_data)
+        errors = []
+        
+        # 验证必填字段
+        if not self.name_entry.get().strip():
+            errors.append("请输入课程名称")
+        if not self.teacher_entry.get().strip():
+            errors.append("请输入任课老师")
+        if not self.location_entry.get().strip():
+            errors.append("请输入上课地点")
+            
+        # 验证时间选择
+        time_index = self.start_time.current()
+        if time_index < 0:
+            errors.append("请选择上课时间段")
+            
+        # 验证周数范围
+        try:
+            start_week = int(self.start_week.get())
+            end_week = int(self.end_week.get())
+            if start_week < 1 or end_week > 20:
+                errors.append("周数范围应在1-20周之间")
+            if start_week > end_week:
+                errors.append("起始周不能大于结束周")
+        except ValueError:
+            errors.append("周数必须是有效的数字")
+            
+        return errors
 
     def save_course(self):
         """保存课程信息"""

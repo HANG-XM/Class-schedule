@@ -1,32 +1,11 @@
-import tkinter as tk
-from tkinter import messagebox
-
 import threading
 import time
 from datetime import datetime, timedelta
 from logger_config import logger
-from typing import Tuple
-
+import tkinter as tk
+from tkinter import messagebox
 import winsound  # 用于Windows系统声音提醒
-class ReminderService:
-    def __init__(self, course_manager):
-        self.course_manager = course_manager
-        self.running = False
-        self.reminder_thread = None
-        self.reminder_types = {
-            "popup": self._show_popup_reminder,
-            "sound": self._play_sound_reminder,
-            "both": lambda c: (self._show_popup_reminder(c), self._play_sound_reminder())
-        }
-        
-    def _trigger_reminder(self, course):
-        """触发提醒"""
-        try:
-            reminder_type = course[15]  # reminder_type
-            if reminder_type in self.reminder_types:
-                self.reminder_types[reminder_type](course)
-        except Exception as e:
-            logger.error(f"触发提醒时出错: {str(e)}")
+
 class ReminderService:
     def __init__(self, course_manager):
         self.course_manager = course_manager
@@ -68,20 +47,36 @@ class ReminderService:
             except Exception as e:
                 logger.error(f"检查提醒时出错: {str(e)}")
 
-    def _check_course_reminder(self, course: Tuple, now: datetime, current_day: int) -> bool:
-        """检查单个课程的提醒条件"""
-        if len(course) < 16:
-            return False
+    def _should_remind(self, course, now, current_day):
+        """判断是否应该触发提醒"""
+        try:
+            # 检查数据长度
+            if len(course) < 16:  # 确保有足够的数据
+                logger.warning(f"课程数据不完整: {course}")
+                return False
+            # 检查是否是今天的课程
+            if int(course[6]) != current_day:
+                return False
+                
+            # 检查是否启用了提醒
+            if not course[13]:  # reminder_enabled
+                return False
+                
+            # 解析课程开始时间
+            course_time = datetime.strptime(course[7], "%H:%M").time()
+            course_datetime = datetime.combine(now.date(), course_time)
             
-        if int(course[6]) != current_day or not course[13]:
-            return False
+            # 计算提醒时间
+            reminder_minutes = int(course[14])  # reminder_minutes
+            reminder_time = course_datetime - timedelta(minutes=reminder_minutes)
             
-        course_time = datetime.strptime(course[7], "%H:%M").time()
-        course_datetime = datetime.combine(now.date(), course_time)
-        reminder_time = course_datetime - timedelta(minutes=int(course[14]))
-        
-        time_diff = (now - reminder_time).total_seconds()
-        return 0 <= time_diff < 60
+            # 检查是否到了提醒时间
+            time_diff = (now - reminder_time).total_seconds()
+            return 0 <= time_diff < 60  # 在一分钟内的误差范围内
+            
+        except Exception as e:
+            logger.error(f"判断提醒时出错: {str(e)}")
+            return False
 
     def _trigger_reminder(self, course):
         """触发提醒"""

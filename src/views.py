@@ -1,45 +1,13 @@
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
-
 from datetime import datetime, timedelta
 from logger_config import logger
-
+from dialogs import EditCourseDialog
 from course_manager import SpecialCourse
-class BaseView:
+class WeekView:
     def __init__(self, parent, app):
         self.parent = parent
         self.app = app
-        self.frame = tb.Frame(parent)
-        
-    def create_nav_frame(self, callback):
-        """创建导航框架"""
-        nav_frame = tb.Frame(self.frame)
-        nav_frame.pack(fill=X, pady=(0, 10))
-        tb.Button(nav_frame, text="◀", width=3,
-                 command=lambda: callback(-1)).pack(side=LEFT, padx=5)
-        return nav_frame
-        
-    def update_stats(self, view_type, current_date=None):
-        """更新统计信息"""
-        self.app.stats_panel.update_stats(
-            self.app.courses,
-            self.app.current_week,
-            self.app.course_manager,
-            view_type,
-            current_date
-        )
-    def update_view(self):
-        """更新视图的通用方法"""
-        self.app.load_courses()
-        self.update_stats(self.current_view)
-
-    def handle_course_click(self, event, course):
-        """处理课程点击的通用方法"""
-        from dialogs import EditCourseDialog
-        EditCourseDialog(self.parent, self.app, course)
-class WeekView(BaseView):
-    def __init__(self, parent, app):
-        super().__init__(parent, app)
         self.create_widgets()
 
     def create_widgets(self):
@@ -177,7 +145,7 @@ class WeekView(BaseView):
         try:
             self.app.current_week = max(1, self.app.current_week - 1)
             self.app.top_bar.week_var.set(self.app.current_week)
-            self.update_view()
+            self.show()
         except Exception as e:
             logger.error(f"切换上一周失败: {str(e)}")
 
@@ -186,7 +154,7 @@ class WeekView(BaseView):
         try:
             self.app.current_week = min(20, self.app.current_week + 1)
             self.app.top_bar.week_var.set(self.app.current_week)
-            self.update_view()
+            self.show()
         except Exception as e:
             logger.error(f"切换下一周失败: {str(e)}")
     def on_course_double_click(self, event):
@@ -251,9 +219,10 @@ class WeekView(BaseView):
         except Exception as e:
             logger.error(f"处理双击事件失败: {str(e)}")
 
-class DayView(BaseView):
+class DayView:
     def __init__(self, parent, app):
-        super().__init__(parent, app)
+        self.parent = parent
+        self.app = app
         self.current_date = datetime.now()
         self.create_widgets()
 
@@ -383,10 +352,10 @@ class DayView(BaseView):
             self.show()
         except Exception as e:
             logger.error(f"切换下一天失败: {str(e)}")        
-class MonthView(BaseView):
+class MonthView:
     def __init__(self, parent, app):
-        super().__init__(parent, app)
-        self.current_date = datetime.now()
+        self.parent = parent
+        self.app = app
         self.create_widgets()
 
     def create_widgets(self):
