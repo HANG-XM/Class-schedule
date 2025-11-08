@@ -413,30 +413,26 @@ class StatsPanel:
             for stat_type, stats_dict in view_stats.items():
                 self._create_stat_widget(view_frame, stat_type, stats_dict)
 
-            # 添加空闲时间统计
-            free_frame = tb.LabelFrame(view_frame, text="时间统计", padding=5)
-            free_frame.pack(fill=X, pady=5)
+            # 添加分隔线
+            separator = tb.Frame(view_frame, height=2, bootstyle=SECONDARY)
+            separator.pack(fill=X, pady=5)
 
             if view_type == "day":
                 # 获取当天的空闲时间
                 free_slots = course_manager.get_free_time_slots(current_date.weekday() + 1, current_week)
                 free_time = sum(self._calculate_duration(start, end) for start, end in free_slots)
                 
-                # 第一行：空闲时长标题
-                time_frame = tb.Frame(free_frame)
+                # 第一行：空闲时长
+                time_frame = tb.Frame(view_frame)
                 time_frame.pack(fill=X, pady=2)
-                tb.Label(time_frame, text="空闲时长",
-                        font=("Helvetica", 10)).pack()
-                
-                # 第二行：具体时长
-                time_value_frame = tb.Frame(free_frame)
-                time_value_frame.pack(fill=X, pady=2)
-                tb.Label(time_value_frame, text=f"{free_time}小时",
+                tb.Label(time_frame, text="空闲时长:",
+                        font=("Helvetica", 10)).pack(side=LEFT)
+                tb.Label(time_frame, text=f"{free_time}小时",
                         font=("Helvetica", 10),
-                        bootstyle=INFO).pack()
+                        bootstyle=INFO).pack(side=RIGHT)
                 
-                # 第三行：空闲时间段
-                slots_frame = tb.Frame(free_frame)
+                # 第二行：空闲时间段
+                slots_frame = tb.Frame(view_frame)
                 slots_frame.pack(fill=X, pady=2)
                 if free_slots:
                     slots_text = "\n".join(f"{start}-{end}" for start, end in free_slots)
@@ -460,21 +456,17 @@ class StatsPanel:
                         free_days += 1
                         total_free_time += sum(self._calculate_duration(start, end) for start, end in slots)
                 
-                # 第一行：空闲时长标题
-                time_frame = tb.Frame(free_frame)
+                # 第一行：空闲时长
+                time_frame = tb.Frame(view_frame)
                 time_frame.pack(fill=X, pady=2)
-                tb.Label(time_frame, text="周空闲时长",
-                        font=("Helvetica", 10)).pack()
-                
-                # 第二行：具体时长
-                time_value_frame = tb.Frame(free_frame)
-                time_value_frame.pack(fill=X, pady=2)
-                tb.Label(time_value_frame, text=f"{total_free_time}小时",
+                tb.Label(time_frame, text="周空闲时长:",
+                        font=("Helvetica", 10)).pack(side=LEFT)
+                tb.Label(time_frame, text=f"{total_free_time}小时",
                         font=("Helvetica", 10),
-                        bootstyle=INFO).pack()
+                        bootstyle=INFO).pack(side=RIGHT)
                 
-                # 第三行：空闲天数
-                days_frame = tb.Frame(free_frame)
+                # 第二行：空闲天数
+                days_frame = tb.Frame(view_frame)
                 days_frame.pack(fill=X, pady=2)
                 tb.Label(days_frame, text=f"空闲天数: {free_days}/7",
                         font=("Helvetica", 9),
@@ -484,21 +476,17 @@ class StatsPanel:
                 # 获取月份的空闲时间统计
                 month_stats = course_manager.get_month_free_time_slots(current_date.year, current_date.month)
                 
-                # 第一行：空闲时长标题
-                time_frame = tb.Frame(free_frame)
+                # 第一行：空闲时长
+                time_frame = tb.Frame(view_frame)
                 time_frame.pack(fill=X, pady=2)
-                tb.Label(time_frame, text="月空闲时长",
-                        font=("Helvetica", 10)).pack()
-                
-                # 第二行：具体时长
-                time_value_frame = tb.Frame(free_frame)
-                time_value_frame.pack(fill=X, pady=2)
-                tb.Label(time_value_frame, text=f"{month_stats['total_free_time']}小时",
+                tb.Label(time_frame, text="月空闲时长:",
+                        font=("Helvetica", 10)).pack(side=LEFT)
+                tb.Label(time_frame, text=f"{month_stats['total_free_time']}小时",
                         font=("Helvetica", 10),
-                        bootstyle=INFO).pack()
+                        bootstyle=INFO).pack(side=RIGHT)
                 
-                # 第三行：空闲天数
-                days_frame = tb.Frame(free_frame)
+                # 第二行：空闲天数
+                days_frame = tb.Frame(view_frame)
                 days_frame.pack(fill=X, pady=2)
                 # 计算空闲天数
                 free_days = len([day for day, stats in month_stats['days'].items() if stats['free_time'] > 0])
